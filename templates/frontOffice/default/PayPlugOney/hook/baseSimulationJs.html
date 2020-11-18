@@ -1,0 +1,50 @@
+<script>
+    var simulationUrl = "{url path="/oney/simulate"}";
+    {literal}
+        window.addEventListener('click', function(e){
+            if (!document.getElementById('oneyPopIn').contains(e.target)){
+                resetPopIn();
+            }
+        });
+        function loadSimulation(amount) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', simulationUrl+"?amount="+amount);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    document.getElementById('oneyPopIn').innerHTML = xhr.responseText;
+                    onSimulationLoaded();
+                }
+            };
+            xhr.send();
+        }
+        function onSimulationLoaded()
+        {
+            var oneyNavigations = document.getElementsByClassName('oneyPopin_navigation_li');
+            Array.prototype.forEach.call(document.getElementsByClassName('oneyPopin_close'), function(close) {
+                close.addEventListener('click', function (event) {
+                    resetPopIn();
+                });
+            });
+            Array.prototype.forEach.call(oneyNavigations, function(navigation) {
+                navigation.addEventListener('click', function (event) {
+                    var typeSelected = this.getAttribute('data-type');
+                    Array.prototype.forEach.call(oneyNavigations, function(navigation) {
+                        navigation.classList.remove("selected");
+                        if (navigation.getAttribute('data-type') === typeSelected) {
+                            navigation.classList.add('selected');
+                        }
+                    })
+                    Array.prototype.forEach.call(document.getElementsByClassName('oneyPopin_option'), function(option) {
+                        option.classList.remove("oneyPopin_option-show");
+                        if (option.getAttribute('data-type') === typeSelected) {
+                            option.classList.add('oneyPopin_option-show');
+                        }
+                    });
+                });
+            });
+        }
+        function resetPopIn() {
+            document.getElementById('oneyPopIn').innerHTML = "";
+        }
+    {/literal}
+</script>

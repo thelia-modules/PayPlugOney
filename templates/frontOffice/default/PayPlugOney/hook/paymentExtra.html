@@ -1,0 +1,73 @@
+{form_field form=$form field='pay_plug_oney_type'}
+    <div class="oney_type_inputs">
+        <input id="oney_x3_with_fees" type="radio" name={$name} value="oney_x3_with_fees" checked>
+        <input id="oney_x4_with_fees" type="radio" name={$name} value="oney_x3_with_fees">
+    </div>
+{/form_field}
+<div class="oneyOption_wrapper" id="oneyOption_wrapper">
+    {foreach from=$simulations item=simulation key=type}
+        <label data-type="{$type}" class="oneyOption oneyOption-{$type} {if $type === "x3_with_fees"}oneyOption-selected{/if}">
+            <div class="oneyOption_title">
+                {if $type === "x3_with_fees"}
+                    <span class="oneyOption_logo oneyLogo oneyLogo-x3"></span>
+                    {intl l="Pay in 3 times"}
+                {else}
+                    <span class="oneyOption_logo oneyLogo oneyLogo-x4"></span>
+                    {intl l="Pay in 4 times"}
+                {/if}
+            </div>
+            <div class="oneyOption_prices">
+                <ul>
+                    <li>
+                        <span><b>{intl l="For amount of : "}</b></span>
+                        <span><b>{format_money number=$amount/100}</b></span>
+                    </li>
+                    <li>
+                        <span>{intl l="First intake : "}</span>
+                        <span><b>{format_money number=$simulation["down_payment_amount"]/100}</b></span>
+                        <small>
+                            {intl l="(Financing cost : <b>%cost</b> APR : <b>%apr %</b>)" cost={format_money number=$simulation["total_cost"]/100} apr=$simulation["effective_annual_percentage_rate"]}
+                        </small>
+                    </li>
+                    {foreach from=$simulation["installments"] key=count item=installment}
+                        <li>
+                            <span>{intl l="Installment n°"}{$count+1}</span>
+                            <span><b>{format_money number=$installment['amount']/100}</b></span>
+                        </li>
+                    {/foreach}
+                    <li>
+                        <span><b>{intl l="Total :"}</b></span>
+                        <span><b>{format_money number=($amount+$simulation["total_cost"])/100}</b></span>
+                    </li>
+                </ul>
+            </div>
+        </label>
+    {/foreach}
+</div>
+<script>
+    var options = document.getElementsByClassName('oneyOption');
+    var optionCheckedClass = 'oneyOption-selected';
+    Array.prototype.forEach.call(options, function(option) {
+        option.addEventListener('click', function (event) {
+            var typeSelected = option.getAttribute('data-type');
+
+            Array.prototype.forEach.call(options, function(option) {
+                option.classList.remove(optionCheckedClass)
+            });
+            option.classList.add(optionCheckedClass);
+            console.log("oney_" + typeSelected);
+            document.getElementById("oney_"+typeSelected).checked = true;
+        });
+    });
+
+    var oneyOptionWrapper = document.getElementById("oneyOption_wrapper");
+    var oneyPaymentInput = document.getElementById('payment_{$oneyModuleId}');
+    Array.prototype.forEach.call(document.getElementsByName(oneyPaymentInput.name), function (input) {
+        input.addEventListener('change', function (event) {
+            oneyOptionWrapper.classList.remove('oneyOption_wrapper-show');
+            if (oneyPaymentInput.checked) {
+                oneyOptionWrapper.classList.add('oneyOption_wrapper-show');
+            }
+        })
+    });
+</script>

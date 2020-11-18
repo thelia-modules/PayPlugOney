@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module xmlns="http://thelia.net/schema/dic/module"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://thelia.net/schema/dic/module http://thelia.net/schema/dic/module/module-2_2.xsd">
+    <fullnamespace>PayPlugOney\PayPlugOney</fullnamespace>
+    <descriptive locale="en_US">
+        <title>Multiple time payment with Oney</title>
+        <!--
+        <subtitle></subtitle>
+        <description></description>
+        <postscriptum></postscriptum>
+        -->
+    </descriptive>
+    <descriptive locale="fr_FR">
+        <title>Paiement en plusieurs fois avec Oney</title>
+    </descriptive>
+    <logo>oney.png</logo>
+    <images-folder>images</images-folder>
+    <languages>
+        <language>en_US</language>
+        <language>fr_FR</language>
+    </languages>
+    <version>1.0.0</version>
+    <authors>
+        <author>
+            <name></name>
+            <email></email>
+        </author>
+    </authors>
+    <type>payment</type>
+    <required>
+        <module version="&gt;=1.0.0">PayPlugModule</module>
+    </required>
+    <thelia>2.4.0</thelia>
+    <stability>other</stability>
+    <mandatory>0</mandatory>
+    <hidden>0</hidden>
+</module>

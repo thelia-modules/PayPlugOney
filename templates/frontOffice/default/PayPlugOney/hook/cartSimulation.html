@@ -1,0 +1,30 @@
+{include file="PayPlugOney/hook/baseSimulationJs.html"}
+<script>
+    {postage}
+        {assign var="postageAmount" value=$postage}
+    {/postage}
+    {assign var="postageAmount" value=$postage }
+    var tableCartFoot = document.querySelector('.table-cart tfoot');
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<tr>\n" +
+        "    <td colspan=\"3\" class=\"empty\">&nbsp;</td>\n" +
+        "    <td colspan='2'>\n" +
+        "        <div>\n" +
+        "            <button type=\"button\" class=\"oneyCta_button oneyCta_button-cart\">\n" +
+        "                <span>{intl l="Or pay in"}</span>\n" +
+        "                <span class=\"oneyCta_logo oneyLogo oneyLogo-x3x4\"></span>\n" +
+        "                <span class=\"oneyCta_tooltip oneyLogo oneyLogo-tooltip\"></span>\n" +
+        "            </button>\n" +
+        "            <div id=\"oneyPopIn\"></div>\n" +
+        "        </div>\n" +
+        "    </td>\n" +
+        "</tr>";
+    tableCartFoot.append(tr);
+
+    var oneySimulationCartButtons = document.getElementsByClassName('oneyCta_button-cart');
+    Array.prototype.forEach.call(oneySimulationCartButtons, function(button) {
+        button.addEventListener('click', function (event) {
+            loadSimulation(({$amount}+{$postageAmount})*100);
+        });
+    });
+</script>

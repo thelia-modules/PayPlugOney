@@ -1,0 +1,43 @@
+{default_translation_domain domain="payplugoney.front.default"}
+<div class="oneyCta oneyCta-open">
+    <span class="oneyPopin oneyPopin-open oneyPopin-show">
+            <button class="oneyPopin_close"> {intl l="Close"}</button>
+        <span class="oneyPopin_title">
+            {intl l="Pay"}<strong>{intl l="with credit card"}</strong>
+        </span>
+        <ul class="oneyPopin_navigation">
+            <li class="oneyPopin_navigation_li selected" data-type="x3_with_fees"><button type="button">{intl l="Pay in 3 times"}</button></li>
+            <li class="oneyPopin_navigation_li" data-type="x4_with_fees"><button type="button" >{intl l="Pay in 4 times"}</button></li>
+        </ul>
+        {foreach from=$simulations item=simulation key=type}
+            <span class="oneyPopin_option {if $type === "x3_with_fees"}oneyPopin_option-show{/if}" data-type="{$type}">
+            <ul>
+                <li>
+                    <span><b>{intl l="For amount of : "}</b></span>
+                    <span><b>{format_money number=$amount/100}</b></span>
+                </li>
+                <li>
+                    <span>{intl l="First intake : "}</span>
+                    <span><b>{format_money number=$simulation["down_payment_amount"]/100}</b></span>
+                    <small>
+                        {intl l="(Financing cost : <b>%cost</b> APR : <b>%apr %</b>)" cost={format_money number=$simulation["total_cost"]/100} apr=$simulation["effective_annual_percentage_rate"]}
+                    </small>
+                </li>
+                {foreach from=$simulation["installments"] key=count item=installment}
+                    <li>
+                        <span>{intl l="Installment n°"}{$count+1}</span>
+                        <span><b>{format_money number=$installment['amount']/100}</b></span>
+                    </li>
+                {/foreach}
+                <li>
+                    <span><b>{intl l="Total :"}</b></span>
+                    <span><b>{format_money number=($amount+$simulation["total_cost"])/100}</b></span>
+                </li>
+            </ul>
+            </span>
+        {/foreach}
+        <span class="oneyPopin_legal">
+            {intl l="Financing offer with compulsory contribution, reserved for private individuals and valid for any purchase from € 100.00 to € 3,000.00. Subject to acceptance by Oney Bank. You have 14 days to cancel your credit. Oney Bank - SA au capital de 51 286 585€ - 34 Avenue de Flandre 59170 Croix - 546 380 197 RCS Lille Métropole - n° Orias 07 023 261 www.orias.fr Correspondence: CS 60 006 - 59895 Lille Cedex - www.oney.fr"}
+        </span>
+    </span>
+</div>

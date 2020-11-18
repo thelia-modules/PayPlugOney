@@ -1,0 +1,13 @@
+{
+  "name": "thelia/pay-plug-oney-module",
+  "description": "Multiple time payment with Oney",
+  "license": "LGPL-3.0-or-later",
+  "type": "thelia-module",
+  "require": {
+    "thelia/installer": "~1.1",
+    "thelia/pay-plug-module": "~1.1"
+  },
+  "extra": {
+    "installer-name": "PayPlugOney"
+  }
+}

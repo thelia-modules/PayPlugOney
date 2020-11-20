@@ -6,6 +6,9 @@ use PayPlugOney\PayPlugOney;
 use PayPlugOney\Service\OneyService;
 use Thelia\Core\Event\Hook\HookRenderEvent;
 use Thelia\Core\Hook\BaseHook;
+use Thelia\Core\Translation\Translator;
+use Thelia\Model\Base\AddressQuery;
+use Thelia\Model\CartItem;
 use Thelia\TaxEngine\TaxEngine;
 
 class FrontHook extends BaseHook
@@ -85,10 +88,13 @@ class FrontHook extends BaseHook
         try {
             $oneyModuleId = PayPlugOney::getModuleId();
 
+            $cart = $this->getCart();
+            $order = $this->getOrder();
+
             $taxCountry = $this->taxEngine->getDeliveryCountry();
             $taxState = $this->taxEngine->getDeliveryState();
 
-            $amount = 100 * ($this->getCart()->getTaxedAmount($taxCountry, true, $taxState) + $this->getOrder()->getPostage());
+            $amount = 100 * ($cart->getTaxedAmount($taxCountry, true, $taxState) + $order->getPostage());
             $simulations = $this->oneyService->getSimulation($amount);
 
             $event->add(

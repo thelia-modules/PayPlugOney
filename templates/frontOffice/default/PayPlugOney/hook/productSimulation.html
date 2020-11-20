@@ -1,5 +1,5 @@
 <button type="button" class="oneyCta_button oneyCta_button-product">
-    <span>Payer en</span>
+    <span>{intl l="Pay in" d="payplugoney.fo.default"}</span>
     <span class="oneyCta_logo oneyLogo oneyLogo-x3x4"></span>
     <span class="oneyCta_tooltip oneyLogo oneyLogo-tooltip"></span>
 </button>
@@ -9,11 +9,29 @@
     var oneySimulationProductButtons = document.getElementsByClassName('oneyCta_button-product');
     Array.prototype.forEach.call(oneySimulationProductButtons, function(button) {
         button.addEventListener('click', function (event) {
-            var selectedPseId = document.getElementById('pse-id').value;
-            var quantity = document.getElementById('quantity').value;
-            var selectedPse = PSE[selectedPseId];
-            var amount = selectedPse.finalPrice * quantity * 100;
-            loadSimulation(amount);
+            loadSimulation(getSelectedPsePrice());
         });
     });
+    Array.prototype.forEach.call(document.querySelectorAll('#form-product-details select, #form-product-details input'), function (input) {
+        input.addEventListener('click', function (event) {
+            checkSimulation(getSelectedPsePrice(), function (isSimulationValid) {
+                Array.prototype.forEach.call(oneySimulationProductButtons, function(button) {
+                    if (isSimulationValid) {
+                        button.classList.remove('oneyCta_button-product-disabled')
+                    } else {
+                        button.classList.add('oneyCta_button-product-disabled')
+                    }
+                });
+            });
+        });
+    });
+    function getSelectedPsePrice() {
+        var selectedPseId = document.querySelector('#form-product-details #pse-id').value;
+        var quantity = document.querySelector('#form-product-details #quantity').value;
+        console.log(selectedPseId);
+        console.log(quantity);
+        console.log(document.getElementById('quantity'));
+        var selectedPse = PSE[selectedPseId];
+        return  selectedPse.finalPrice * quantity * 100;
+    }
 </script>

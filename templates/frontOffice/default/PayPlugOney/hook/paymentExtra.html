@@ -4,40 +4,45 @@
         <input id="oney_x4_with_fees" type="radio" name={$name} value="oney_x3_with_fees">
     </div>
 {/form_field}
+<div id="oneyPayment_error" class="oneyPayment_error">
+    <p>{intl l="To pay with Oney the following conditions are required : " d="payplugoney.fo.default"}</p>
+    <ul>
+    </ul>
+</div>
 <div class="oneyOption_wrapper" id="oneyOption_wrapper">
     {foreach from=$simulations item=simulation key=type}
         <label data-type="{$type}" class="oneyOption oneyOption-{$type} {if $type === "x3_with_fees"}oneyOption-selected{/if}">
             <div class="oneyOption_title">
                 {if $type === "x3_with_fees"}
                     <span class="oneyOption_logo oneyLogo oneyLogo-x3"></span>
-                    {intl l="Pay in 3 times"}
+                    {intl l="Pay in 3 times" d="payplugoney.fo.default"}
                 {else}
                     <span class="oneyOption_logo oneyLogo oneyLogo-x4"></span>
-                    {intl l="Pay in 4 times"}
+                    {intl l="Pay in 4 times" d="payplugoney.fo.default"}
                 {/if}
             </div>
             <div class="oneyOption_prices">
                 <ul>
                     <li>
-                        <span><b>{intl l="For amount of : "}</b></span>
+                        <span><b>{intl l="For amount of : " d="payplugoney.fo.default"}</b></span>
                         <span><b>{format_money number=$amount/100}</b></span>
                     </li>
                     <li>
-                        <span>{intl l="First intake : "}</span>
+                        <span>{intl l="First intake : " d="payplugoney.fo.default"}</span>
                         <span><b>{format_money number=$simulation["down_payment_amount"]/100}</b></span>
                         <small>
-                            {intl l="(Financing cost : <b>%cost</b> APR : <b>%apr %</b>)" cost={format_money number=$simulation["total_cost"]/100} apr=$simulation["effective_annual_percentage_rate"]}
+                            {intl l="(Financing cost : <b>%cost</b> APR : <b>%apr %</b>)" cost={format_money number=$simulation["total_cost"]/100} apr=$simulation["effective_annual_percentage_rate"] d="payplugoney.fo.default"}
                         </small>
                     </li>
                     {foreach from=$simulation["installments"] key=count item=installment}
                         <li>
-                            <span>{intl l="Installment n°"}{$count+1}</span>
+                            <span>{intl l="Installment n° " d="payplugoney.fo.default"}{$count+1}</span>
                             <span><b>{format_money number=$installment['amount']/100}</b></span>
                         </li>
                     {/foreach}
                     <li>
-                        <span><b>{intl l="Total :"}</b></span>
-                        <span><b>{format_money number=($amount+$simulation["total_cost"])/100}</b></span>
+                        <span><b>{intl l="Total :" d="payplugoney.fo.default"}</b></span>
+                        <span><b>{format_money number=($amount+$simulation["total_cost"])/100} : </b></span>
                     </li>
                 </ul>
             </div>
@@ -47,6 +52,16 @@
 <script>
     var options = document.getElementsByClassName('oneyOption');
     var optionCheckedClass = 'oneyOption-selected';
+    var oneyOptionWrapper = document.getElementById("oneyOption_wrapper");
+    var oneyPaymentInput = document.getElementById('payment_{$oneyModuleId}');
+    var form = document.getElementById('form-cart-payment');
+    var errorWrapper = document.getElementById("oneyPayment_error");
+    var paymentLogo = oneyPaymentInput.parentNode.querySelector('img');
+    var errorUl = errorWrapper.querySelector('ul');
+
+    checkSimulationDisplay();
+    checkPaymentFormValidity();
+
     Array.prototype.forEach.call(options, function(option) {
         option.addEventListener('click', function (event) {
             var typeSelected = option.getAttribute('data-type');
@@ -60,14 +75,49 @@
         });
     });
 
-    var oneyOptionWrapper = document.getElementById("oneyOption_wrapper");
-    var oneyPaymentInput = document.getElementById('payment_{$oneyModuleId}');
+    function checkSimulationDisplay() {
+        oneyOptionWrapper.classList.remove('oneyOption_wrapper-show');
+        if (oneyPaymentInput.checked) {
+            oneyOptionWrapper.classList.add('oneyOption_wrapper-show');
+        }
+    }
+
     Array.prototype.forEach.call(document.getElementsByName(oneyPaymentInput.name), function (input) {
         input.addEventListener('change', function (event) {
-            oneyOptionWrapper.classList.remove('oneyOption_wrapper-show');
-            if (oneyPaymentInput.checked) {
-                oneyOptionWrapper.classList.add('oneyOption_wrapper-show');
-            }
+            checkSimulationDisplay();
         })
     });
+
+    Array.prototype.forEach.call(document.getElementsByName("thelia_order_payment[invoice-address]"), function (input) {
+        input.addEventListener('change', function (event) {
+            checkPaymentFormValidity();
+        })
+    });
+
+    function checkPaymentFormValidity() {
+        errorWrapper.classList.remove('oneyPayment_error-show');
+        paymentLogo.classList.remove('oneyPayment_disabled')
+        errorUl.innerHTML = "";
+        oneyPaymentInput.disabled = false;
+
+        formData = new FormData(form);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', "{url path="/oney/payment_form"}");
+        xhr.onload = function() {
+            var errors = JSON.parse(xhr.responseText).errors;
+            if (errors.length > 0) {
+                errorWrapper.classList.add('oneyPayment_error-show');
+                Array.prototype.forEach.call(errors, function (error) {
+                    var li = document.createElement("li");
+                    li.innerHTML = error;
+                    errorUl.appendChild(li);
+                })
+                paymentLogo.classList.add('oneyPayment_disabled')
+                oneyPaymentInput.disabled = true;
+                oneyPaymentInput.checked = false;
+                oneyOptionWrapper.classList.remove('oneyOption_wrapper-show');
+            }
+        };
+        xhr.send(formData);
+    }
 </script>

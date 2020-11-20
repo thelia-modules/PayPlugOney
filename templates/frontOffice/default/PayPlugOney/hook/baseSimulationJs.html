@@ -1,5 +1,6 @@
 <script>
     var simulationUrl = "{url path="/oney/simulate"}";
+    var checkSimulationUrl = "{url path="/oney/check_simulation"}";
     {literal}
         window.addEventListener('click', function(e){
             if (!document.getElementById('oneyPopIn').contains(e.target)){
@@ -13,6 +14,17 @@
                 if (xhr.status === 200) {
                     document.getElementById('oneyPopIn').innerHTML = xhr.responseText;
                     onSimulationLoaded();
+                }
+            };
+            xhr.send();
+        }
+        function checkSimulation(amount, checkCallback) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', checkSimulationUrl+"?amount="+amount);
+            xhr.onload = function () {
+                if (xhr.status === 200 && typeof checkCallback === 'function') {
+                    var jsonResponse = JSON.parse(xhr.responseText);
+                    checkCallback(jsonResponse.isValid);
                 }
             };
             xhr.send();

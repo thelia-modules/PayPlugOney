@@ -36,5 +36,12 @@
     <route id="payplugoney_simulation" path="/oney/simulate">
         <default key="_controller">PayPlugOney\Controller\Front\SimulationController::simulate</default>
     </route>
+    <route id="payplugoney_check_simulation" path="/oney/check_simulation">
+        <default key="_controller">PayPlugOney\Controller\Front\SimulationController::isSimulationValid</default>
+    </route>
+
+    <route id="payplugoney_check_payment_form" path="/oney/payment_form">
+        <default key="_controller">PayPlugOney\Controller\Front\OneyController::checkPaymentFormValidity</default>
+    </route>
 
 </routes>

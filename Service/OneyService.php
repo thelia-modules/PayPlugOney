@@ -2,10 +2,15 @@
 
 namespace PayPlugOney\Service;
 
+use libphonenumber\PhoneNumberType;
+use libphonenumber\PhoneNumberUtil;
 use Payplug\OneySimulation;
 use PayPlugModule\Event\PayPlugPaymentEvent;
 use PayPlugModule\Service\PaymentService;
 use PayPlugOney\Event\OneyPaymentEvent;
+use PayPlugOney\PayPlugOney;
+use Thelia\Core\Translation\Translator;
+use Thelia\Model\Address;
 
 class OneyService extends PaymentService
 {
@@ -43,5 +48,24 @@ class OneyService extends PaymentService
             'id' => $oneyPaymentEvent->getPaymentId(),
             'url' => $oneyPaymentEvent->getPaymentUrl(),
         ];
+    }
+
+    public function isValidOneyAddress(Address $address)
+    {
+        $cellphoneNumber = $address->getCellphone();
+        if ($cellphoneNumber === null) {
+            throw new \Exception(
+                Translator::getInstance()->trans('Cellphone number is missing.', [], PayPlugOney::DOMAIN_NAME)
+            );
+        }
+
+        $phoneUtil = PhoneNumberUtil::getInstance();
+        $parsedNumber = $phoneUtil->parse($cellphoneNumber, $address->getCountry()->getIsoalpha2());
+        $numberType = $phoneUtil->getNumberType($parsedNumber);
+        if (PhoneNumberType::MOBILE !== $numberType && PhoneNumberType::FIXED_LINE_OR_MOBILE !== $numberType) {
+            throw new \Exception(
+                Translator::getInstance()->trans('Cellphone number is invalid.', [], PayPlugOney::DOMAIN_NAME)
+            );
+        }
     }
 }

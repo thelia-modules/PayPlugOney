@@ -45,17 +45,19 @@
         <hook id="payplugoney.hook" class="PayPlugOney\Hook\ConfigurationHook">
             <tag name="hook.event_listener" event="payplugmodule.configuration.bottom" type="back" method="addOneyConfiguration" />
         </hook>
+
+        <hook id="payplugoney.back.hook" class="PayPlugOney\Hook\BackHook">
+            <tag name="hook.event_listener" event="order-edit.payment-module-bottom" type="back" method="onOrderEditPaymentModuleBottom"/>
+            <tag name="hook.event_listener" event="order.edit-js " type="back" templates="js:PayPlugModule/order_pay_plug.js"/>
+        </hook>
         <hook id="payplugoney.hook.front" class="PayPlugOney\Hook\FrontHook">
             <argument type="service" id="thelia.taxEngine"/>
             <argument type="service" id="oney_service"/>
 
-            <tag name="hook.event_listener" event="product.stylesheet" type="front" method="addOneyStylesheet" />
+            <tag name="hook.event_listener" event="main.stylesheet" type="front" method="addOneyStylesheet" />
+
             <tag name="hook.event_listener" event="product.details-bottom" type="front" method="addProductOneySimulation" />
-
-            <tag name="hook.event_listener" event="cart.stylesheet" type="front" method="addOneyStylesheet" />
             <tag name="hook.event_listener" event="cart.after-javascript-include" type="front" method="addCartOneySimulation" />
-
-            <tag name="hook.event_listener" event="order-invoice.stylesheet " type="front" method="addOneyStylesheet"/>
             <tag name="hook.event_listener" event="order-invoice.payment-extra" type="front" method="addOneyPaymentExtra"/>
         </hook>
     </hooks>

@@ -2,6 +2,7 @@
 
 namespace PayPlugOney\Hook;
 
+use PayPlugOney\Model\PayPlugOneyConfigValue;
 use PayPlugOney\PayPlugOney;
 use PayPlugOney\Service\OneyService;
 use Thelia\Core\Event\Hook\HookRenderEvent;
@@ -104,5 +105,30 @@ class FrontHook extends BaseHook
         {
             // todo add log
         }
+    }
+
+    public function addOneyTermsAndConditionOnContent(HookRenderEvent $event)
+    {
+        $termsAndConditionsContentId = PayPlugOney::getConfigValue(PayPlugOneyConfigValue::TERMS_AND_CONDITIONS_CONTENT_ID, 0);
+        if (0 === $termsAndConditionsContentId) {
+            return;
+        }
+
+        $contentId = $event->getArgument('content');
+
+        if ($contentId !== $termsAndConditionsContentId) {
+            return;
+        }
+
+        $event->add(
+            $this->render('/PayPlugOney/hook/termsAndConditions.html')
+        );
+    }
+
+    public function addOneyTermsAndConditionOnModuleHook(HookRenderEvent $event)
+    {
+        $event->add(
+            $this->render('/PayPlugOney/hook/termsAndConditions.html')
+        );
     }
 }

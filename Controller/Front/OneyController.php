@@ -25,7 +25,7 @@ class OneyController extends BaseFrontController
 
         try {
             $invoiceAddressId = $this->getRequest()->get('thelia_order_payment[invoice-address]', $order->getChoosenInvoiceAddress(), true);
-            if 4242 4242 4242 4242 (null === $invoiceAddressId) {
+            if (null === $invoiceAddressId) {
                 throw new \Exception(
                     Translator::getInstance()->trans('Address not found', [], PayPlugOney::DOMAIN_NAME)
                 );
@@ -53,6 +53,10 @@ class OneyController extends BaseFrontController
 
         if ($cartTotalQuantity > 1000) {
             $errors[] = Translator::getInstance()->trans('The sum of quantities of item in your cart must be lesser than 1000.', [], PayPlugOney::DOMAIN_NAME);
+        }
+
+        if (false !== strpos($cart->getCustomer()->getEmail(), '+')) {
+            $errors[] = Translator::getInstance()->trans('Your email addresses cannot contain a plus sign (+).', [], PayPlugOney::DOMAIN_NAME);
         }
 
         return new JsonResponse(compact('errors'));

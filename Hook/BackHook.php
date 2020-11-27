@@ -38,8 +38,8 @@ class BackHook extends BaseHook
             return;
         }
 
-
         $isPaid = !in_array($order->getOrderStatus()->getCode(), [OrderStatus::CODE_NOT_PAID, OrderStatus::CODE_CANCELED, OrderStatusService::ONEY_AUTHORIZATION_PENDING_ORDER_STATUS_CODE]);
+
         $event->add(
             $this->renderBasePayPlugTemplate(
                 'PayPlugModule/order_pay_plug.html',

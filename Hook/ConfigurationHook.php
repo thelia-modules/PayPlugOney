@@ -2,7 +2,6 @@
 
 namespace PayPlugOney\Hook;
 
-use PayPlugOney\PayPlugOney;
 use Thelia\Core\Event\Hook\HookRenderEvent;
 use Thelia\Core\Hook\BaseHook;
 

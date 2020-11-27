@@ -17,6 +17,7 @@ use PayPlugOney\FormExtend\OrderFormListener;
 use PayPlugOney\Model\PayPlugOneyConfigValue;
 use PayPlugOney\Service\OneyService;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Thelia\Core\Template\TemplateDefinition;
 use Thelia\Model\Order;
 use Thelia\Module\AbstractPaymentModule;
 use Thelia\Tools\URL;
@@ -92,5 +93,21 @@ class PayPlugOney extends AbstractPaymentModule
     public function getMaximumAmount()
     {
         return 300000;
+    }
+
+    public function getHooks()
+    {
+        return [
+            [
+                "type" => TemplateDefinition::FRONT_OFFICE,
+                "code" => "pay_plug_oney.terms_and_conditions",
+                "title" => [
+                    "en_US" => "Oney hook to place in terms and conditions page",
+                    "fr_FR" => "Hook Oney a placer sur la page des cgv",
+                ],
+                "block" => false,
+                "active" => true,
+            ]
+        ];
     }
 }

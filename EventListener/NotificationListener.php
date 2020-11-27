@@ -86,56 +86,6 @@ class NotificationListener implements EventSubscriberInterface
         return null;
     }
 
-    public function handleRefundNotification(RefundNotificationEvent $event)
-    {
-        $transactionRef = $event->getResource()->payment_id;
-        if (!$transactionRef) {
-            return;
-        }
-
-        $order =  OrderQuery::create()
-            ->filterByPaymentModuleId(PayPlugModule::getModuleId())
-            ->filterByTransactionRef($transactionRef)
-            ->findOne();
-
-        $multiPayment = OrderPayPlugMultiPaymentQuery::create()
-            ->findOneByPaymentId($transactionRef);
-
-        if (null !== $multiPayment) {
-            $multiPayment->setAmountRefunded((int)$multiPayment->getAmountRefunded() + $event->getResource()->amount)
-                ->save();
-            $order = $multiPayment->getOrder();
-        }
-
-        if (null === $order) {
-            return;
-        }
-
-        $orderPayPlugData = OrderPayPlugDataQuery::create()
-            ->findOneById($order->getId());
-
-        $orderPayPlugData->setAmountRefunded((int)$orderPayPlugData->getAmountRefunded() + $event->getResource()->amount)
-            ->save();
-
-        $event = (new OrderEvent($order))
-            ->setStatus(OrderStatusQuery::getRefundedStatus()->getId());
-        $this->dispatcher->dispatch(TheliaEvents::ORDER_UPDATE_STATUS, $event);
-    }
-
-    protected function getOrderFromResource($resource)
-    {
-        $transactionRef = $resource->id;
-
-        if (!$transactionRef) {
-            return null;
-        }
-
-        return OrderQuery::create()
-            ->filterByPaymentModuleId(PayPlugModule::getModuleId())
-            ->filterByTransactionRef($transactionRef)
-            ->findOne();
-    }
-
     /**
      * @inheritDoc
      */

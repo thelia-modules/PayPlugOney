@@ -7,6 +7,7 @@
 {include file="PayPlugOney/hook/baseSimulationJs.html"}
 <script>
     var oneySimulationProductButtons = document.getElementsByClassName('oneyCta_button-product');
+
     Array.prototype.forEach.call(oneySimulationProductButtons, function(button) {
         button.addEventListener('click', function (event) {
             loadSimulation(getSelectedPsePrice());
@@ -25,12 +26,22 @@
             });
         });
     });
+
+    setTimeout(triggerSelectClick, 500)
+
+    document.addEventListener("DOMContentLoaded", function () {
+        triggerSelectClick();
+    })
+
+    function triggerSelectClick() {
+        Array.prototype.forEach.call(document.querySelectorAll('#form-product-details select, #form-product-details input'), function (input) {
+            input.click();
+        });
+    }
+
     function getSelectedPsePrice() {
         var selectedPseId = document.querySelector('#form-product-details #pse-id').value;
         var quantity = document.querySelector('#form-product-details #quantity').value;
-        console.log(selectedPseId);
-        console.log(quantity);
-        console.log(document.getElementById('quantity'));
         var selectedPse = PSE[selectedPseId];
         return  selectedPse.finalPrice * quantity * 100;
     }

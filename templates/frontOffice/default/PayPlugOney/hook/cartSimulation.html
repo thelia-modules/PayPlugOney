@@ -22,6 +22,15 @@
     tableCartFoot.append(tr);
 
     var oneySimulationCartButtons = document.getElementsByClassName('oneyCta_button-cart');
+    checkSimulation(({$amount}+{$postageAmount})*100, function (isSimulationValid) {
+        Array.prototype.forEach.call(oneySimulationCartButtons, function(button) {
+            if (isSimulationValid) {
+                button.classList.remove('oneyCta_button-product-disabled')
+            } else {
+                button.classList.add('oneyCta_button-product-disabled')
+            }
+        });
+    });
     Array.prototype.forEach.call(oneySimulationCartButtons, function(button) {
         button.addEventListener('click', function (event) {
             loadSimulation(({$amount}+{$postageAmount})*100);

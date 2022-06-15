@@ -52,6 +52,11 @@ class OneyService extends PaymentService
 
     public function isValidOneyAddress(Address $address)
     {
+        if (!in_array($address->getCountry()->getIsoalpha2(), ['FR', 'IT'])) {
+            throw new \Exception(
+                Translator::getInstance()->trans('Oney is not available in %country.', ['%country' => $address->getCountry()->getTitle()], PayPlugOney::DOMAIN_NAME)
+            );
+        }
         $cellphoneNumber = $address->getCellphone();
         if ($cellphoneNumber === null) {
             throw new \Exception(

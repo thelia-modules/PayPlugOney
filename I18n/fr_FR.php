@@ -9,6 +9,7 @@ return array(
     'Error' => 'Erreur',
     'I confirm that I have added the hook' => 'Je confirme que j\'ai ajouté ce hook',
     'Invoice address invalid : ' => 'Adresse de facturation invalide : ',
+    'Oney is not available in %country.' => 'Oney n\'est pas disponibe dans ce pays : %country',
     'Pay in 3 times' => 'Payer en 3 fois',
     'Pay in 4 times' => 'Payer en 4 fois',
     'Select a content' => 'Sélectionnez un contenu',

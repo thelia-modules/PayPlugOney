@@ -16,7 +16,7 @@
                     <span><b>{format_money number=$amount/100}</b></span>
                 </li>
                 <li>
-                    <span>{intl l="First intake : " d="payplugoney.fo.default"}</span>
+                    <span>{intl l="Intake : " d="payplugoney.fo.default"}</span>
                     <span><b>{format_money number=$simulation["down_payment_amount"]/100}</b></span>
                     <small>
                         {intl l="(Financing cost : <b>%cost</b> APR : <b>%apr %</b>)" cost={format_money number=$simulation["total_cost"]/100} apr=$simulation["effective_annual_percentage_rate"] d="payplugoney.fo.default"}

@@ -29,7 +29,7 @@ return array(
     'Pay in' => 'Payer en',
     'Pay in 3 times' => 'Payer en 3 fois',
     'Pay in 4 times' => 'Payer en 4 fois',
-    'Payment of your order in 3 or 4 times by credit card from 100€ of purchases up to 3000€ with Oney Bank' => 'Paiement de votre commande en 3 ou 4 fois par CB à partir de 100€ d’achats jusqu’à 3000€ avec Oney Bank',
+    'Payment of your order in 3 or 4 times by credit card from 100€ of purchases up to 3000€ with Oney Bank' => 'Paiement de votre commande en 3 ou 4 fois par carte bancaire à partir de 100€ d’achats jusqu’à 3000€ avec Oney Bank',
     'Subscription terms: ' => 'Modalités de souscription : ',
     'The payment in 3 or 4 times by credit card allows you to pay the order made on our merchant site in the following way:' => 'Le paiement en 3 ou 4 fois par carte bancaire vous permet de régler la commande effectuée sur notre site marchand de la façon suivante :',
     'The total amount of your order must be between 100.00 € and 3000.00 € to pay with Oney with credit card.' => 'Le montant total de votre commande doit être entre 100.00 € et 3000.00 € pour payer avec Oney par carte bancaire. ',

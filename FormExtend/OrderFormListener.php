@@ -38,8 +38,8 @@ class OrderFormListener implements EventSubscriberInterface
                 ChoiceType::class,
                 [
                     'choices' => [
-                        'oney_x3_with_fees' => Translator::getInstance()->trans('Pay in 3 times', [], PayPlugOney::DOMAIN_NAME),
-                        'oney_x4_with_fees' => Translator::getInstance()->trans('Pay in 4 times', [], PayPlugOney::DOMAIN_NAME)
+                        Translator::getInstance()->trans('Pay in 3 times', [], PayPlugOney::DOMAIN_NAME) => 'oney_x3_with_fees',
+                        Translator::getInstance()->trans('Pay in 4 times', [], PayPlugOney::DOMAIN_NAME) => 'oney_x4_with_fees'
                     ]
                 ]
             );

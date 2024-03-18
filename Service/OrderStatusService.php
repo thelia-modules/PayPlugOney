@@ -46,7 +46,7 @@ class OrderStatusService
             ->setLocale('en_US')
             ->setTitle('Oney authorization pending');
 
-        $this->dispatcher->dispatch(TheliaEvents::ORDER_STATUS_CREATE, $oneyAuthorizationPendingOrderStatusEvent);
+        $this->dispatcher->dispatch($oneyAuthorizationPendingOrderStatusEvent, TheliaEvents::ORDER_STATUS_CREATE);
 
         $updateEvent =  (new OrderStatusUpdateEvent($oneyAuthorizationPendingOrderStatusEvent->getOrderStatus()->getId()))
             ->setCode(self::ONEY_AUTHORIZATION_PENDING_ORDER_STATUS_CODE)
@@ -54,7 +54,7 @@ class OrderStatusService
             ->setLocale('fr_FR')
             ->setTitle('Autorisation oney en cours');
 
-        $this->dispatcher->dispatch(TheliaEvents::ORDER_STATUS_UPDATE, $updateEvent);
+        $this->dispatcher->dispatch($updateEvent,TheliaEvents::ORDER_STATUS_UPDATE);
 
         return $oneyAuthorizationPendingOrderStatusEvent->getOrderStatus();
     }

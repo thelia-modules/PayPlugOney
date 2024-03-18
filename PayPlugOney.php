@@ -12,10 +12,12 @@
 
 namespace PayPlugOney;
 
+use OpenApi\Controller\Front\CheckoutController;
 use PayPlugModule\Service\PaymentService;
 use PayPlugOney\FormExtend\OrderFormListener;
 use PayPlugOney\Model\PayPlugOneyConfigValue;
 use PayPlugOney\Service\OneyService;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Thelia\Core\Template\TemplateDefinition;
 use Thelia\Model\Order;
@@ -40,12 +42,25 @@ class PayPlugOney extends AbstractPaymentModule
             $oneyService = $this->container->get('oney_service');
 
             $oneyType = $this->getRequest()->getSession()->get(OrderFormListener::PAY_PLUG_ONEY_TYPE_FIELD_NAME);
+
+            if (null === $oneyType) {
+                $paymentOptions = $this->getRequest()->getSession()->get(CheckoutController::PAYMENT_MODULE_OPTION_CHOICES_SESSION_KEY);
+                if (!empty($paymentOptions)) {
+                    foreach ($paymentOptions as $group => $values) {
+                        if ($group !== 'pay_plug_oney_type') {
+                            continue;
+                        }
+
+                        $oneyType = array_pop($values);
+                    }
+                }
+            }
             $payment = $oneyService->sendOneyPayment(
                 $order,
                 $oneyType
             );
         } catch (\Exception $exception) {
-            return RedirectResponse::create(URL::getInstance()->absoluteUrl('error'));
+            return  new RedirectResponse(URL::getInstance()->absoluteUrl('error'));
         }
 
         return new RedirectResponse($payment['url']);
@@ -109,5 +124,13 @@ class PayPlugOney extends AbstractPaymentModule
                 "active" => true,
             ]
         ];
+    }
+
+    public static function configureServices(ServicesConfigurator $servicesConfigurator): void
+    {
+        $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
+            ->exclude([THELIA_MODULE_DIR . ucfirst(self::getModuleCode()). "/I18n/*"])
+            ->autowire(true)
+            ->autoconfigure(true);
     }
 }

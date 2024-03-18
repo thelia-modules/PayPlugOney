@@ -66,7 +66,7 @@ class ConfigurationForm extends BaseForm
         ;
     }
 
-    public function getName()
+    public static function getName()
     {
         return "payplugoney_configuration_form";
     }

@@ -42,7 +42,7 @@ class OneyService extends PaymentService
             $oneyPaymentEvent->setShippingCompany($oneyPaymentEvent->getShippingFirstName(). " " .$oneyPaymentEvent->getShippingLastName());
         }
 
-        $this->dispatcher->dispatch(PayPlugPaymentEvent::ORDER_PAYMENT_EVENT, $oneyPaymentEvent);
+        $this->dispatcher->dispatch($oneyPaymentEvent,PayPlugPaymentEvent::ORDER_PAYMENT_EVENT);
 
         return [
             'id' => $oneyPaymentEvent->getPaymentId(),

@@ -21,7 +21,7 @@
     </commands>
 
     <services>
-        <service id="oney_service" class="PayPlugOney\Service\OneyService" parent="payplugmodule_payment_service">
+        <service id="oney_service" class="PayPlugOney\Service\OneyService" parent="payplugmodule_payment_service" public="true">
             <argument type="service" id="event_dispatcher"/>
         </service>
 

@@ -1,0 +1,25 @@
+<span class="oneyPopin_option {if $type === "x3_with_fees"}oneyPopin_option-show{/if}" data-type="{$type}">
+<ul>
+    <li>
+        <span><b>{intl l="For amount of : " d="payplugoney.fo.default"}</b></span>
+        <span><b>{format_money number=$amount/100}</b></span>
+    </li>
+    <li>
+        <span>{intl l="Intake : " d="payplugoney.fo.default"}</span>
+        <span><b>{format_money number=$simulation["down_payment_amount"]/100}</b></span>
+        <small>
+            {intl l="(Financing cost : <b>%cost</b> APR : <b>%apr %</b>)" cost={format_money number=$simulation["total_cost"]/100} apr=$simulation["effective_annual_percentage_rate"] d="payplugoney.fo.default"}
+        </small>
+    </li>
+    {foreach from=$simulation["installments"] key=count item=installment}
+        <li>
+            <span>{intl l="Installment n° " d="payplugoney.fo.default"}{$count+1} : </span>
+            <span><b>{format_money number=$installment['amount']/100}</b></span>
+        </li>
+    {/foreach}
+    <li>
+        <span><b>{intl l="Total :" d="payplugoney.fo.default"}</b></span>
+        <span><b>{format_money number=($amount+$simulation["total_cost"])/100}</b></span>
+    </li>
+</ul>
+</span>

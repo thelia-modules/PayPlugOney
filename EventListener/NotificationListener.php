@@ -61,7 +61,7 @@ class NotificationListener implements EventSubscriberInterface
             $event = (new OrderEvent($order))
                 ->setStatus($orderStatus->getId());
 
-            $this->dispatcher->dispatch(TheliaEvents::ORDER_UPDATE_STATUS, $event);
+            $this->dispatcher->dispatch($event, TheliaEvents::ORDER_UPDATE_STATUS);
         }
     }
 

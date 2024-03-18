@@ -13,5 +13,5 @@ Add guaranted multypayment by Oney, Payplug payment module is required
 ### Composer
 
 ```
-composer require thelia/pay-plug-oney-module:~1.0
+composer require thelia/pay-plug-oney-module ~2.0.0
 ``` 

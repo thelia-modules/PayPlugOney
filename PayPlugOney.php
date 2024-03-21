@@ -80,7 +80,7 @@ class PayPlugOney extends AbstractPaymentModule
 
         $amount = $this->getCurrentOrderTotalAmount();
 
-        if ($amount * 100 < (new PayPlugOney)->getMinimumAmount() || $amount * 100 > (new PayPlugOney)->getMaximumAmount()) {
+        if ($amount * 100 < (new PayPlugOney)->getOneyMinimumAmount() || $amount * 100 > (new PayPlugOney)->getOneyMaximumAmount()) {
             return false;
         }
 
@@ -92,11 +92,21 @@ class PayPlugOney extends AbstractPaymentModule
         return PayPlugOney::getConfigValue(PayPlugOneyConfigValue::PAYMENT_ENABLED, false);
     }
 
+    public function getMinimumAmount()
+    {
+        return $this->getOneyMinimumAmount() / 100;
+    }
+
+    public function getMaximumAmount()
+    {
+        return $this->getOneyMaximumAmount() /100;
+    }
+
     /**
      * For now it's fix but later it will be configurable
      * @return int the minimum amount to pay with oney (in cents)
      */
-    public function getMinimumAmount()
+    public function getOneyMinimumAmount()
     {
         return 10000;
     }
@@ -105,7 +115,7 @@ class PayPlugOney extends AbstractPaymentModule
      * For now it's fix but later it will be configurable
      * @return int the maximum amount to pay with oney (in cents)
      */
-    public function getMaximumAmount()
+    public function getOneyMaximumAmount()
     {
         return 300000;
     }

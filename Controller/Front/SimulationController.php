@@ -12,8 +12,8 @@ class SimulationController extends BaseFrontController
     public function simulate()
     {
         $amount = (int)round($this->getRequest()->get('amount'));
-        $minimumAmount = (new PayPlugOney)->getMinimumAmount();
-        $maximumAmount = (new PayPlugOney)->getMaximumAmount();
+        $minimumAmount = (new PayPlugOney)->getOneyMinimumAmount();
+        $maximumAmount = (new PayPlugOney)->getOneyMaximumAmount();
 
         if ($amount < $minimumAmount || $amount > $maximumAmount) {
             return $this->render('PayPlugOney/outOfBoundSimulation', compact('minimumAmount', 'maximumAmount'));
@@ -29,8 +29,8 @@ class SimulationController extends BaseFrontController
     public function isSimulationValid()
     {
         $amount = (int)round($this->getRequest()->get('amount'));
-        $minimumAmount = (new PayPlugOney)->getMinimumAmount();
-        $maximumAmount = (new PayPlugOney)->getMaximumAmount();
+        $minimumAmount = (new PayPlugOney)->getOneyMinimumAmount();
+        $maximumAmount = (new PayPlugOney)->getOneyMaximumAmount();
 
         return new JsonResponse(
             [

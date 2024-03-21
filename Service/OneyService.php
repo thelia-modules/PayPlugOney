@@ -7,7 +7,6 @@ use libphonenumber\PhoneNumberUtil;
 use Payplug\OneySimulation;
 use PayPlugModule\Event\PayPlugPaymentEvent;
 use PayPlugModule\Service\PaymentService;
-use PayPlugOney\Event\OneyPaymentEvent;
 use PayPlugOney\PayPlugOney;
 use Thelia\Core\Translation\Translator;
 use Thelia\Model\Address;
@@ -17,6 +16,7 @@ class OneyService extends PaymentService
     public function getSimulation($amount)
     {
         $payPlug = $this->initAuth();
+
         return OneySimulation::getSimulations(
             [
                 'amount' => (int)$amount,

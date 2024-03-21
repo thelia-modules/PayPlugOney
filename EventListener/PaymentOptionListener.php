@@ -82,6 +82,7 @@ class PaymentOptionListener implements EventSubscriberInterface
 
             /** @var PaymentModuleOption $option */
             $option = $this->modelFactory->buildModel('PaymentModuleOption');
+            $option->setCode($type);
             $option->setTitle(Translator::getInstance()->trans('Pay in %count times', ['%count' => $count]));
             $option->setDescription(
                 $this->parser->render(

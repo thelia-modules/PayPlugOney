@@ -56,8 +56,8 @@ class PaymentOptionListener implements EventSubscriberInterface
         $paymentModuleOptionGroup = $this->modelFactory->buildModel('PaymentModuleOptionGroup');
         $paymentModuleOptionGroup
             ->setCode('pay_plug_oney_type')
-            ->setTitle(Translator::getInstance()->trans('Choose the number of payments'))
-            ->setDescription(Translator::getInstance()->trans('Financing offer with compulsory contribution, reserved for private individuals and valid for any purchase from € 100.00 to € 3,000.00. Subject to acceptance by Oney Bank. You have 14 days to cancel your credit. Oney Bank - SA au capital de 51 286 585€ - 34 Avenue de Flandre 59170 Croix - 546 380 197 RCS Lille Métropole - n° Orias 07 023 261 www.orias.fr Correspondence: CS 60 006 - 59895 Lille Cedex - www.oney.fr'))
+            ->setTitle(Translator::getInstance()->trans('Choose the number of payments', [], PayPlugOney::DOMAIN_NAME))
+            ->setDescription(Translator::getInstance()->trans('Financing offer with compulsory contribution, reserved for private individuals and valid for any purchase from € 100.00 to € 3,000.00. Subject to acceptance by Oney Bank. You have 14 days to cancel your credit. Oney Bank - SA au capital de 51 286 585€ - 34 Avenue de Flandre 59170 Croix - 546 380 197 RCS Lille Métropole - n° Orias 07 023 261 www.orias.fr Correspondence: CS 60 006 - 59895 Lille Cedex - www.oney.fr', [], PayPlugOney::DOMAIN_NAME))
             ->setMinimumSelectedOptions(1)
             ->setMaximumSelectedOptions(1);
 
@@ -83,7 +83,7 @@ class PaymentOptionListener implements EventSubscriberInterface
             /** @var PaymentModuleOption $option */
             $option = $this->modelFactory->buildModel('PaymentModuleOption');
             $option->setCode($type);
-            $option->setTitle(Translator::getInstance()->trans('Pay in %count times', ['%count' => $count]));
+            $option->setTitle(Translator::getInstance()->trans('Pay in %count times', ['%count' => $count], PayPlugOney::DOMAIN_NAME));
             $option->setDescription(
                 $this->parser->render(
                     'PayPlugOney/simulationBlock.html',

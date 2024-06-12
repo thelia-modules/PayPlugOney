@@ -43,6 +43,7 @@ class PayPlugOney extends AbstractPaymentModule
 
             $oneyType = $this->getRequest()->getSession()->get(OrderFormListener::PAY_PLUG_ONEY_TYPE_FIELD_NAME);
 
+            $orderTotalAmount = $this->getOrderPayTotalAmount($order);
             if (null === $oneyType) {
                 $paymentOptions = $this->getRequest()->getSession()->get(CheckoutController::PAYMENT_MODULE_OPTION_CHOICES_SESSION_KEY);
                 if (!empty($paymentOptions)) {
@@ -57,7 +58,8 @@ class PayPlugOney extends AbstractPaymentModule
             }
             $payment = $oneyService->sendOneyPayment(
                 $order,
-                $oneyType
+                $oneyType,
+                $orderTotalAmount
             );
         } catch (\Exception $exception) {
             return  new RedirectResponse(URL::getInstance()->absoluteUrl('error'));

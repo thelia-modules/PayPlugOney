@@ -30,13 +30,14 @@ class OneyService extends PaymentService
         );
     }
 
-    public function sendOneyPayment($order, $oneyType)
+    public function sendOneyPayment($order, $oneyType, ?float $orderTotalAmount = null)
     {
         $oneyPaymentEvent = (new PayPlugPaymentEvent())
-            ->buildFromOrder($order)
+            ->buildFromOrder($order, $orderTotalAmount)
             ->setCapture(true)
             ->setAutoCapture(true)
-            ->setPaymentMethod($oneyType);
+            ->setPaymentMethod($oneyType)
+        ;
 
         if (null == $oneyPaymentEvent->getShippingCompany()) {
             $oneyPaymentEvent->setShippingCompany($oneyPaymentEvent->getShippingFirstName(). " " .$oneyPaymentEvent->getShippingLastName());

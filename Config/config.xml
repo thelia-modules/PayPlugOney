@@ -39,6 +39,12 @@
             <argument type="service" id="payplugoney_order_status_service"/>
             <tag name="kernel.event_subscriber"/>
         </service>
+
+        <service id="payplugoney_conformation_emil_listener" class="PayPlugOney\EventListener\ConfirmationEmailListener">
+            <argument type="service" id="mailer"/>
+            <argument type="service" id="event_dispatcher"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
     </services>
 
     <hooks>

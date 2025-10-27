@@ -71,12 +71,12 @@ class NotificationListener implements EventSubscriberInterface
      */
     protected function getOrderStatusFromPaymentResource($paymentResource)
     {
-        if (null !== $paymentResource->failure) {
-            return OrderStatusQuery::getCancelledStatus();
+        if (true === $paymentResource->is_paid) {
+            return OrderStatusQuery::getPaidStatus();
         }
 
-        if (null !== $paymentResource->authorization->authorized_at) {
-            return OrderStatusQuery::getPaidStatus();
+        if (null !== $paymentResource->failure) {
+            return OrderStatusQuery::getCancelledStatus();
         }
 
         if (null !== $paymentResource->payment_method['is_pending']) {

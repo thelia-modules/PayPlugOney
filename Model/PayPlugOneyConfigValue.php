@@ -1,23 +1,30 @@
 <?php
 
+declare(strict_types=1);
 
 namespace PayPlugOney\Model;
 
-
-class PayPlugOneyConfigValue
+/**
+ * Configuration keys stored through BaseModule::setConfigValue(). Not a Propel model:
+ * the module owns no table.
+ */
+final class PayPlugOneyConfigValue
 {
-    const PAYMENT_ENABLED = "payment_enabled";
+    public const PAYMENT_ENABLED = 'payment_enabled';
 
-    const TERMS_AND_CONDITIONS_CONTENT_ID = "terms_and_conditions_content_id";
+    public const TERMS_AND_CONDITIONS_CONTENT_ID = 'terms_and_conditions_content_id';
 
-    const TERMS_AND_CONDITIONS_HOOK_ADDED = "terms_and_conditions_hook_added";
+    public const TERMS_AND_CONDITIONS_HOOK_ADDED = 'terms_and_conditions_hook_added';
 
-    public static function getConfigKeys()
+    /**
+     * @return array<int, string>
+     */
+    public static function getConfigKeys(): array
     {
         return [
             self::PAYMENT_ENABLED,
             self::TERMS_AND_CONDITIONS_CONTENT_ID,
-            self::TERMS_AND_CONDITIONS_HOOK_ADDED
+            self::TERMS_AND_CONDITIONS_HOOK_ADDED,
         ];
     }
 }

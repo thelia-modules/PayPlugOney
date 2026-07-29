@@ -10,39 +10,35 @@
     </ul>
 </div>
 <div class="oneyOption_wrapper" id="oneyOption_wrapper">
-    {foreach from=$simulations item=simulation key=type}
-        <label data-type="{$type}" class="oneyOption oneyOption-{$type} {if $type === "x3_with_fees"}oneyOption-selected{/if}">
+    {* $options is a list of PayPlugOney\Service\Dto\OneySimulationOption. *}
+    {foreach from=$options item=option name=plans}
+        <label data-type="{$option->code}" class="oneyOption oneyOption-{$option->code} {if $smarty.foreach.plans.first}oneyOption-selected{/if}">
             <div class="oneyOption_title">
-                {if $type === "x3_with_fees"}
-                    <span class="oneyOption_logo oneyLogo oneyLogo-x3"></span>
-                    {intl l="Pay in 3 times" d="payplugoney.fo.default"}
-                {else}
-                    <span class="oneyOption_logo oneyLogo oneyLogo-x4"></span>
-                    {intl l="Pay in 4 times" d="payplugoney.fo.default"}
-                {/if}
+                <span class="oneyOption_logo oneyLogo oneyLogo-x{$option->installmentCount}"></span>
+                {intl l="Pay in %count times" count=$option->installmentCount d="payplugoney.fo.default"}
             </div>
             <div class="oneyOption_prices">
                 <ul>
                     <li>
                         <span><b>{intl l="For amount of : " d="payplugoney.fo.default"}</b></span>
-                        <span><b>{format_money number=$amount/100}</b></span>
+                        <span><b>{format_money number=$option->orderAmountInCents/100}</b></span>
                     </li>
                     <li>
                         <span>{intl l="First intake : " d="payplugoney.fo.default"}</span>
-                        <span><b>{format_money number=$simulation["down_payment_amount"]/100}</b></span>
+                        <span><b>{format_money number=$option->downPaymentAmountInCents/100}</b></span>
                         <small>
-                            {intl l="(Financing cost : <b>%cost</b> APR : <b>%apr %</b>)" cost={format_money number=$simulation["total_cost"]/100} apr=$simulation["effective_annual_percentage_rate"] d="payplugoney.fo.default"}
+                            {intl l="(Financing cost : <b>%cost</b> APR : <b>%apr %</b>)" cost={format_money number=$option->totalCostInCents/100} apr=$option->effectiveAnnualPercentageRate d="payplugoney.fo.default"}
                         </small>
                     </li>
-                    {foreach from=$simulation["installments"] key=count item=installment}
+                    {foreach from=$option->installmentAmountsInCents key=count item=installmentAmount}
                         <li>
                             <span>{intl l="Installment n° " d="payplugoney.fo.default"}{$count+1}</span>
-                            <span><b>{format_money number=$installment['amount']/100}</b></span>
+                            <span><b>{format_money number=$installmentAmount/100}</b></span>
                         </li>
                     {/foreach}
                     <li>
                         <span><b>{intl l="Total :" d="payplugoney.fo.default"}</b></span>
-                        <span><b>{format_money number=($amount+$simulation["total_cost"])/100} : </b></span>
+                        <span><b>{format_money number=$option->getTotalAmountInCents()/100} : </b></span>
                     </li>
                 </ul>
             </div>

@@ -1,40 +1,56 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPlugOney\EventListener;
 
 use PayPlugModule\Event\Notification\PaymentNotificationEvent;
-use PayPlugModule\Event\Notification\RefundNotificationEvent;
 use PayPlugModule\Model\OrderPayPlugDataQuery;
-use PayPlugModule\Model\OrderPayPlugMultiPaymentQuery;
-use PayPlugModule\PayPlugModule;
-use PayPlugOney\Service\OrderStatusService;
 use PayPlugOney\PayPlugOney;
+use PayPlugOney\Service\OrderStatusService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Thelia\Core\Event\Order\OrderEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Model\OrderQuery;
+use Thelia\Model\OrderStatus;
 use Thelia\Model\OrderStatusQuery;
 
+/**
+ * Reflects PayPlug payment notifications onto the Oney order status.
+ *
+ * Note: this listener deliberately does not subscribe to
+ * RefundNotificationEvent::REFUND_NOTIFICATION_EVENT. It used to, pointing at a
+ * 'handleRefundNotification' method that does not exist in this class, which made every
+ * refund notification fail. Deciding which status a partial refund should produce is a
+ * business rule, not a migration concern, so the broken subscription was removed rather
+ * than given an invented implementation.
+ */
 class NotificationListener implements EventSubscriberInterface
 {
-    /** @var OrderStatusService  */
-    protected $orderStatusService;
-
-    /** @var EventDispatcherInterface */
-    protected $dispatcher;
-
-    public function __construct(EventDispatcherInterface $dispatcher, OrderStatusService $orderStatusService)
-    {
-        $this->dispatcher = $dispatcher;
-        $this->orderStatusService = $orderStatusService;
+    public function __construct(
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly OrderStatusService $orderStatusService,
+    ) {
     }
 
-    public function handlePaymentNotification(PaymentNotificationEvent $event)
+    public static function getSubscribedEvents(): array
     {
-        $transactionRef = $event->getResource()->id;
-        if (!$transactionRef) {
-            return null;
+        return [
+            PaymentNotificationEvent::PAYMENT_NOTIFICATION_EVENT => ['handlePaymentNotification', 128],
+        ];
+    }
+
+    public function handlePaymentNotification(PaymentNotificationEvent $event): void
+    {
+        $paymentResource = $event->getResource();
+
+        // The PayPlug SDK exposes API fields as dynamic properties, which static analysis
+        // cannot see on Payplug\Resource\Payment.
+        /** @var string|null $transactionRef */
+        $transactionRef = $paymentResource->id; // @phpstan-ignore property.notFound
+        if (empty($transactionRef)) {
+            return;
         }
 
         $order = OrderQuery::create()
@@ -46,30 +62,22 @@ class NotificationListener implements EventSubscriberInterface
             return;
         }
 
-        $orderPayPlugData = OrderPayPlugDataQuery::create()
-            ->findOneById($order->getId());
-
-        if (null === $orderPayPlugData) {
+        if (null === OrderPayPlugDataQuery::create()->findOneById($order->getId())) {
             return;
         }
 
-        $paymentResource = $event->getResource();
-
-        $orderStatus = $this->getOrderStatusFromPaymentResource($paymentResource);
-
-        if (null !== $orderStatus) {
-            $event = (new OrderEvent($order))
-                ->setStatus($orderStatus->getId());
-
-            $this->dispatcher->dispatch($event, TheliaEvents::ORDER_UPDATE_STATUS);
+        $orderStatus = $this->resolveOrderStatus($paymentResource);
+        if (null === $orderStatus) {
+            return;
         }
+
+        $this->dispatcher->dispatch(
+            (new OrderEvent($order))->setStatus($orderStatus->getId()),
+            TheliaEvents::ORDER_UPDATE_STATUS
+        );
     }
 
-    /**
-     * @param $paymentResource
-     * @return \Thelia\Model\OrderStatus
-     */
-    protected function getOrderStatusFromPaymentResource($paymentResource)
+    private function resolveOrderStatus(object $paymentResource): ?OrderStatus
     {
         if (true === $paymentResource->is_paid) {
             return OrderStatusQuery::getPaidStatus();
@@ -79,21 +87,13 @@ class NotificationListener implements EventSubscriberInterface
             return OrderStatusQuery::getCancelledStatus();
         }
 
-        if (null !== $paymentResource->payment_method['is_pending']) {
+        // Oney authorises before confirming: the payment method reports "pending" while
+        // Oney reviews the file. Guard on the key's presence — PayPlug omits it entirely
+        // for non-Oney payment methods, and reading it blindly emits a warning.
+        if (!empty($paymentResource->payment_method['is_pending'])) {
             return $this->orderStatusService->findOrCreateOneyAuthorizationPendingOrderStatus();
         }
 
         return null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getSubscribedEvents()
-    {
-        return [
-            PaymentNotificationEvent::PAYMENT_NOTIFICATION_EVENT => ['handlePaymentNotification', 128],
-            RefundNotificationEvent::REFUND_NOTIFICATION_EVENT => ['handleRefundNotification', 128]
-        ];
     }
 }

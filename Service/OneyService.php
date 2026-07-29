@@ -1,49 +1,57 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPlugOney\Service;
 
-use libphonenumber\PhoneNumberType;
-use libphonenumber\PhoneNumberUtil;
 use Payplug\OneySimulation;
 use PayPlugModule\Event\PayPlugPaymentEvent;
 use PayPlugModule\Service\PaymentService;
-use PayPlugOney\PayPlugOney;
-use Thelia\Core\Translation\Translator;
+use PayPlugOney\Exception\InvalidAddressException;
 use Thelia\Model\Address;
+use Thelia\Model\Order;
 
+/**
+ * Oney-specific payment operations, layered on top of PayPlugModule's generic payment
+ * service (whose $dispatcher property and initAuth() method are used here).
+ */
 class OneyService extends PaymentService
 {
-    public function getSimulation($amount)
+    /**
+     * @return array<string, mixed> raw simulation payload keyed by operation code
+     */
+    public function getSimulation(int $amountInCents): array
     {
         $payPlug = $this->initAuth();
 
         return OneySimulation::getSimulations(
             [
-                'amount' => (int)$amount,
+                'amount' => $amountInCents,
                 'country' => 'FR',
-                'operations' => [
-                    'x3_with_fees',
-                    'x4_with_fees'
-                ]
+                'operations' => OneySimulationPresenter::getSupportedOperations(),
             ],
             $payPlug
         );
     }
 
-    public function sendOneyPayment($order, $oneyType, ?float $orderTotalAmount = null)
+    /**
+     * @return array{id: mixed, url: mixed}
+     */
+    public function sendOneyPayment(Order $order, ?string $oneyType, ?float $orderTotalAmount = null): array
     {
         $oneyPaymentEvent = (new PayPlugPaymentEvent())
             ->buildFromOrder($order, $orderTotalAmount)
             ->setCapture(true)
             ->setAutoCapture(true)
-            ->setPaymentMethod($oneyType)
-        ;
+            ->setPaymentMethod($oneyType);
 
-        if (null == $oneyPaymentEvent->getShippingCompany()) {
-            $oneyPaymentEvent->setShippingCompany($oneyPaymentEvent->getShippingFirstName(). " " .$oneyPaymentEvent->getShippingLastName());
+        if (null === $oneyPaymentEvent->getShippingCompany()) {
+            $oneyPaymentEvent->setShippingCompany(
+                $oneyPaymentEvent->getShippingFirstName().' '.$oneyPaymentEvent->getShippingLastName()
+            );
         }
 
-        $this->dispatcher->dispatch($oneyPaymentEvent,PayPlugPaymentEvent::ORDER_PAYMENT_EVENT);
+        $this->dispatcher->dispatch($oneyPaymentEvent, PayPlugPaymentEvent::ORDER_PAYMENT_EVENT);
 
         return [
             'id' => $oneyPaymentEvent->getPaymentId(),
@@ -51,27 +59,14 @@ class OneyService extends PaymentService
         ];
     }
 
-    public function isValidOneyAddress(Address $address)
+    /**
+     * Kept for backwards compatibility. The logic moved to OneyAddressValidator, which needs
+     * no PayPlug credentials — prefer injecting that service directly.
+     *
+     * @throws InvalidAddressException when the address cannot be used with Oney
+     */
+    public function isValidOneyAddress(?Address $address): void
     {
-        if (!in_array($address->getCountry()->getIsoalpha2(), ['FR', 'IT'])) {
-            throw new \Exception(
-                Translator::getInstance()->trans('Oney is not available in %country.', ['%country' => $address->getCountry()->getTitle()], PayPlugOney::DOMAIN_NAME)
-            );
-        }
-        $cellphoneNumber = $address->getCellphone();
-        if ($cellphoneNumber === null) {
-            throw new \Exception(
-                Translator::getInstance()->trans('Cellphone number is missing.', [], PayPlugOney::DOMAIN_NAME)
-            );
-        }
-
-        $phoneUtil = PhoneNumberUtil::getInstance();
-        $parsedNumber = $phoneUtil->parse($cellphoneNumber, $address->getCountry()->getIsoalpha2());
-        $numberType = $phoneUtil->getNumberType($parsedNumber);
-        if (PhoneNumberType::MOBILE !== $numberType && PhoneNumberType::FIXED_LINE_OR_MOBILE !== $numberType) {
-            throw new \Exception(
-                Translator::getInstance()->trans('Cellphone number is invalid.', [], PayPlugOney::DOMAIN_NAME)
-            );
-        }
+        (new OneyAddressValidator())->validate($address);
     }
 }

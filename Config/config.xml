@@ -4,58 +4,46 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://thelia.net/schema/dic/config http://thelia.net/schema/dic/config/thelia-1.0.xsd">
 
-    <loops>
-        <!-- sample definition
-        <loop name="MySuperLoop" class="PayPlugOney\Loop\MySuperLoop" />
-        -->
-    </loops>
-
     <forms>
         <form name="payplugoney_configuration_form" class="PayPlugOney\Form\ConfigurationForm" />
     </forms>
 
-    <commands>
-        <!--
-        <command class="PayPlugOney\Command\MySuperCommand" />
-        -->
-    </commands>
-
     <services>
+        <!--
+            Inherits PayPlugModule's payment service (that id is a public alias, which Symfony
+            resolves through for child definitions). Kept explicit rather than autowired
+            because the parent relationship cannot be expressed with autowiring.
+        -->
         <service id="oney_service" class="PayPlugOney\Service\OneyService" parent="payplugmodule_payment_service" public="true">
             <argument type="service" id="event_dispatcher"/>
-        </service>
-
-        <service id="payplugoney_order_status_service" class="PayPlugOney\Service\OrderStatusService">
-            <argument type="service" id="event_dispatcher"/>
-        </service>
-
-        <service id="payplugoney_form_extend_order_listener" class="PayPlugOney\FormExtend\OrderFormListener">
-            <argument type="service" id="request_stack"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="payplugoney_notification_listener" class="PayPlugOney\EventListener\NotificationListener">
-            <argument type="service" id="event_dispatcher"/>
-            <argument type="service" id="payplugoney_order_status_service"/>
-            <tag name="kernel.event_subscriber"/>
         </service>
     </services>
 
     <hooks>
+        <!--
+            Thelia 2 hooks. Every method guards on PayPlugOney::isThelia3() and no-ops on
+            Thelia 3, where the equivalents live in Hook/Back/* (declared through
+            getSubscribedHooks(), not here) and in the front-office LiveComponent.
+
+            Always declare with method="…", never templates="render:…": a templates=
+            declaration is rendered directly by RegisterHookListenersPass without calling the
+            PHP method, which would bypass the isThelia3() guard.
+        -->
         <hook id="payplugoney.hook" class="PayPlugOney\Hook\ConfigurationHook">
             <tag name="hook.event_listener" event="payplugmodule.configuration.bottom" type="back" method="addOneyConfiguration" />
         </hook>
 
         <hook id="payplugoney.back.hook" class="PayPlugOney\Hook\BackHook">
+            <argument type="service" id="PayPlugOney\Service\OrderPayPlugDataPresenter"/>
+
             <tag name="hook.event_listener" event="order-edit.payment-module-bottom" type="back" method="onOrderEditPaymentModuleBottom"/>
-            <tag name="hook.event_listener" event="order.edit-js " type="back" templates="js:PayPlugModule/order_pay_plug.js"/>
         </hook>
+
         <hook id="payplugoney.hook.front" class="PayPlugOney\Hook\FrontHook">
-            <argument type="service" id="thelia.taxEngine"/>
-            <argument type="service" id="oney_service"/>
+            <argument type="service" id="PayPlugOney\Service\OneyCartAmountResolver"/>
+            <argument type="service" id="PayPlugOney\Service\OneySimulationPresenter"/>
 
             <tag name="hook.event_listener" event="main.stylesheet" type="front" method="addOneyStylesheet" />
-
             <tag name="hook.event_listener" event="product.details-bottom" type="front" method="addProductOneySimulation" />
             <tag name="hook.event_listener" event="cart.after-javascript-include" type="front" method="addCartOneySimulation" />
             <tag name="hook.event_listener" event="order-invoice.payment-extra" type="front" method="addOneyPaymentExtra"/>
@@ -64,15 +52,4 @@
         </hook>
     </hooks>
 
-    <!--
-    <exports>
-
-    </exports>
-    -->
-
-    <!--
-    <imports>
-
-    </imports>
-    -->
 </config>

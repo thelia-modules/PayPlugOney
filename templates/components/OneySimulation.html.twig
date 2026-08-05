@@ -1,16 +1,13 @@
-{# Oney instalment simulation pop-in (Thelia 3 / Flexy).
+{# Oney instalment simulation pop-in (Flexy front-office).
    Usage from a theme template or through the payplugoney_simulation route:
      {{ component('PayPlugOney:OneySimulation', {amountInCents: 150000}) }}
-   The CSS lives in the module's front-office stylesheet hook on Thelia 2; on Thelia 3 the
-   theme is expected to style the .oneyCta / .oneyPopin classes, see the module README. #}
-{% set d = 'payplugoney.fo.default' %}
-
+   The theme is expected to style the .oneyCta / .oneyPopin classes, see the module README. #}
 <div {{ attributes }} class="oneyCta" data-controller="payplugoney-simulation">
     {% if this.eligible %}
         {% if not this.open %}
             <button type="button" class="oneyCta_button"
                     data-action="live#action" data-live-action-param="openSimulation">
-                <span>{{ 'Pay in'|trans({}, d) }}</span>
+                <span>{{ 'Pay in'|payplugoney_trans }}</span>
                 <span class="oneyCta_logo oneyLogo oneyLogo-x3x4"></span>
                 <span class="oneyCta_tooltip oneyLogo oneyLogo-tooltip"></span>
             </button>
@@ -19,18 +16,18 @@
 
             {% if options is empty %}
                 <span class="oneyPopin oneyPopin_error">
-                    {{ 'The total amount of your order must be between 100.00 € and 3000.00 € to pay with Oney with credit card.'|trans({}, d) }}
+                    {{ 'The total amount of your order must be between 100.00 € and 3000.00 € to pay with Oney with credit card.'|payplugoney_trans }}
                 </span>
             {% else %}
                 <span class="oneyPopin oneyPopin-open">
                     {# Closing is client-side: the markup is already here, so no LiveAction and
                        no server round trip. #}
                     <button type="button" class="oneyPopin_close" data-oney-close>
-                        {{ 'Close'|trans({}, d) }}
+                        {{ 'Close'|payplugoney_trans }}
                     </button>
 
                     <span class="oneyPopin_title">
-                        {{ 'Pay'|trans({}, d) }}<strong>{{ 'with credit card'|trans({}, d) }}</strong>
+                        {{ 'Pay'|payplugoney_trans }}<strong>{{ 'with credit card'|payplugoney_trans }}</strong>
                     </span>
 
                     {# Tabs are switched client-side: every plan is already rendered, so

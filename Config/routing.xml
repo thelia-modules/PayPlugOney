@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--
-    Routes are declared here in XML ONLY, never with #[Route] attributes on the controllers.
-
-      - Thelia 2's router reads XML and docblocks, not PHP 8 attributes: an attribute-only
-        route would silently fail to register, breaking the forms that post to it.
-      - Thelia 3 loads a module's Config/routing.xml IN ADDITION to scanning #[Route]
-        attributes, so declaring both registers the same route twice.
-
-    XML alone is the single source that works on both versions.
+    Routes are declared here in XML ONLY, never with #[Route] attributes on the controllers:
+    Thelia 3 loads a module's Config/routing.xml IN ADDITION to scanning #[Route] attributes,
+    so declaring both would register the same route twice.
 -->
 <routes xmlns="http://symfony.com/schema/routing"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -31,9 +26,8 @@
         <default key="_controller">PayPlugOney\Controller\Front\SimulationController::isSimulationValid</default>
     </route>
 
-    <!-- Oney terms and conditions, for a theme to include where it displays its own.
-         Replaces the Thelia 2 pay_plug_oney.terms_and_conditions Smarty hook, which Flexy
-         has no equivalent for. -->
+    <!-- Oney terms and conditions, for a theme to include where it displays its own: Flexy
+         has no front-office hook to render them into. -->
     <route id="payplugoney_terms_and_conditions" path="/oney/terms-and-conditions">
         <default key="_controller">PayPlugOney\Controller\Front\SimulationController::termsAndConditions</default>
     </route>

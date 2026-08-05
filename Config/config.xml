@@ -19,37 +19,12 @@
         </service>
     </services>
 
-    <hooks>
-        <!--
-            Thelia 2 hooks. Every method guards on PayPlugOney::isThelia3() and no-ops on
-            Thelia 3, where the equivalents live in Hook/Back/* (declared through
-            getSubscribedHooks(), not here) and in the front-office LiveComponent.
-
-            Always declare with method="…", never templates="render:…": a templates=
-            declaration is rendered directly by RegisterHookListenersPass without calling the
-            PHP method, which would bypass the isThelia3() guard.
-        -->
-        <hook id="payplugoney.hook" class="PayPlugOney\Hook\ConfigurationHook">
-            <tag name="hook.event_listener" event="payplugmodule.configuration.bottom" type="back" method="addOneyConfiguration" />
-        </hook>
-
-        <hook id="payplugoney.back.hook" class="PayPlugOney\Hook\BackHook">
-            <argument type="service" id="PayPlugOney\Service\OrderPayPlugDataPresenter"/>
-
-            <tag name="hook.event_listener" event="order-edit.payment-module-bottom" type="back" method="onOrderEditPaymentModuleBottom"/>
-        </hook>
-
-        <hook id="payplugoney.hook.front" class="PayPlugOney\Hook\FrontHook">
-            <argument type="service" id="PayPlugOney\Service\OneyCartAmountResolver"/>
-            <argument type="service" id="PayPlugOney\Service\OneySimulationPresenter"/>
-
-            <tag name="hook.event_listener" event="main.stylesheet" type="front" method="addOneyStylesheet" />
-            <tag name="hook.event_listener" event="product.details-bottom" type="front" method="addProductOneySimulation" />
-            <tag name="hook.event_listener" event="cart.after-javascript-include" type="front" method="addCartOneySimulation" />
-            <tag name="hook.event_listener" event="order-invoice.payment-extra" type="front" method="addOneyPaymentExtra"/>
-            <tag name="hook.event_listener" event="content.content-bottom" type="front" method="addOneyTermsAndConditionOnContent"/>
-            <tag name="hook.event_listener" event="pay_plug_oney.terms_and_conditions" type="front" method="addOneyTermsAndConditionOnModuleHook"/>
-        </hook>
-    </hooks>
+    <!--
+        No <hooks> section: the back-office hooks (Hook/Back/*) declare themselves through
+        getSubscribedHooks(), which Thelia 3 auto-discovers. The front-office needs none —
+        Flexy has no Smarty hooks, so the instalment selector comes from the payment module
+        options API (EventListener/PaymentOptionListener) and the simulation pop-in from the
+        PayPlugOney:OneySimulation LiveComponent.
+    -->
 
 </config>

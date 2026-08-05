@@ -4,34 +4,24 @@ declare(strict_types=1);
 
 namespace PayPlugOney\Service;
 
-use PayPlugOney\Contract\TaxContextProviderInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Thelia\Domain\Taxation\TaxEngine\TaxEngine;
 use Thelia\Model\Cart;
 use Thelia\Model\Order;
 
 /**
  * Computes the cart amount Oney must simulate against.
  *
- * This is the module's only point of contact with the tax engine, for two reasons:
- *
- *  - DRY: the same "taxed cart total" computation used to be duplicated in FrontHook
- *    (twice) and in the payment option listener.
- *  - Bi-compatibility: the tax engine's FQCN moved between versions
- *    (Thelia\TaxEngine\TaxEngine on Thelia 2, Thelia\Domain\Taxation\TaxEngine\TaxEngine
- *    on Thelia 3), so it cannot be injected by type. The service id 'thelia.taxEngine' is
- *    a stable public alias in both versions, hence the injection by id below.
+ * This is the module's only point of contact with the tax engine, so the "taxed cart total"
+ * computation exists once instead of being duplicated across the front-office surfaces and
+ * the payment option listener.
  *
  * Every method name states its unit explicitly: the legacy code mixed euros and cents
  * between callers, which is exactly the kind of bug this class exists to prevent.
  */
-final class OneyCartAmountResolver
+final readonly class OneyCartAmountResolver
 {
-    /**
-     * @param TaxContextProviderInterface $taxEngine structural type only — see the interface
-     */
     public function __construct(
-        #[Autowire(service: 'thelia.taxEngine')]
-        private readonly object $taxEngine,
+        private TaxEngine $taxEngine,
     ) {
     }
 
@@ -56,8 +46,8 @@ final class OneyCartAmountResolver
 
     private function getTaxedCartAmountInEuros(Cart $cart): float
     {
-        // Three arguments only: Thelia 3 added a fourth ($withPostage) that does not
-        // exist on Thelia 2. Postage is added by the caller above instead.
+        // $withPostage is left at its default: postage is added by getTaxedTotalInCents()
+        // above, from the order rather than from the cart.
         return $cart->getTaxedAmount(
             $this->taxEngine->getDeliveryCountry(),
             true,

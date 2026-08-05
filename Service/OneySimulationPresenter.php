@@ -18,9 +18,8 @@ use Thelia\Log\Tlog;
  *
  * This is the single place where Oney's business rules live (which operations to
  * simulate, how an operation code maps to a number of instalments, how an option is
- * labelled). Both payment-option listeners — the legacy OpenApi one and the native
- * Thelia 3 one — and the front LiveComponent consume this service, so the logic exists
- * exactly once.
+ * labelled). Both payment-option listeners — the legacy OpenApi one and the native one —
+ * and the front LiveComponent consume this service, so the logic exists exactly once.
  */
 final class OneySimulationPresenter
 {

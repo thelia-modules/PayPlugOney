@@ -33,8 +33,8 @@ class OneyController extends BaseFrontController
     private const MAXIMUM_CART_QUANTITY = 1000;
 
     /**
-     * The dispatcher is injected as an argument: Thelia 3 controllers have no
-     * getDispatcher() method (that was a Thelia 2 helper).
+     * The dispatcher is injected as an argument: controllers have no getDispatcher()
+     * helper method.
      */
     public function checkPaymentFormValidity(
         // OneyAddressValidator rather than OneyService: it needs no PayPlug credentials, so an

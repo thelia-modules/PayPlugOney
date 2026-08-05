@@ -15,18 +15,12 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 /**
- * Oney instalment simulation pop-in for the Thelia 3 (Flexy) front-office.
- *
- * Replaces the Thelia 2 hand-written JavaScript (baseSimulationJs.html plus the product and
- * cart variants), which built XMLHttpRequests, injected innerHTML and wired click handlers
- * by hand.
+ * Oney instalment simulation pop-in for the Flexy front-office.
  *
  * Performance note: the PayPlug simulation endpoint is a paid third-party HTTP call, so it is
  * only invoked once the customer actually opens the pop-in, and the result is memoised for
  * the current render. Switching between the 3x and 4x tabs is handled client-side and does
  * not round-trip to the server.
- *
- * Thelia 3 only: excluded from the container on Thelia 2 by PayPlugOney::configureServices().
  */
 #[AsLiveComponent(
     name: 'PayPlugOney:OneySimulation',
@@ -75,7 +69,7 @@ class OneySimulation
     }
 
     /**
-     * Whether the button should be offered at all — mirrors the Thelia 2 JS
+     * Whether the button should be offered at all — mirrors the legacy JS
      * checkSimulation() call, without the extra HTTP round-trip.
      *
      * Memoised because isPaymentEnabled() hits module_config, and the template reads this

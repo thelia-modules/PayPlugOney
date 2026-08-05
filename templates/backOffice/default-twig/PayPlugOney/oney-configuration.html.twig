@@ -1,8 +1,7 @@
 {# Oney configuration block, inserted into PayPlugModule's configuration screen through the
    payplugmodule.configuration.bottom hook. Rendered as a fragment, so it carries its own
-   <form>: PayPlugModule places the hook outside of its own form.
-   The Thelia 2 counterpart is templates/backOffice/default/PayPlugOney/hook_configuration.html #}
-{% set d = 'payplugoney.bo.default' %}
+   <form>: PayPlugModule places the hook outside of its own form. #}
+{% set d = 'payplugoney.bo.default-twig' %}
 
 <div class="card mb-3" id="oneyConfiguration">
     <div class="card-header d-flex align-items-center gap-2">
@@ -60,9 +59,8 @@
                 <div class="col-md-5">
                     <h4 class="h6">{{ 'By including the Oney terms in your theme'|trans({}, d) }}</h4>
                     <div class="alert alert-info">
-                        {# Thelia 3 (Flexy) has no front-office Smarty hooks, so the Thelia 2
-                           {hook} snippet is not applicable here. The theme fetches the route
-                           instead — see the module README. #}
+                        {# Flexy has no front-office hook to render the terms into: the theme
+                           fetches the route instead — see the module README. #}
                         <p class="mb-1">
                             {{ 'Fetch this route from your theme where your "Terms and Conditions" are displayed:'|trans({}, d) }}
                         </p>

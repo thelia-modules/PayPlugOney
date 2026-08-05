@@ -23,7 +23,6 @@ use PayPlugOney\Service\OneyService;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Thelia\Core\Template\TemplateDefinition;
 use Thelia\Log\Tlog;
 use Thelia\Model\Order;
 use Thelia\Module\AbstractPaymentModule;
@@ -32,6 +31,13 @@ use Thelia\Tools\URL;
 class PayPlugOney extends AbstractPaymentModule
 {
     public const DOMAIN_NAME = 'payplugoney';
+
+    /**
+     * Front-office translation domain. Thelia derives it from the name of the template
+     * directory (`templates/frontOffice/flexy`) and reads the catalogues from the mirrored
+     * `I18n/frontOffice/flexy`, so renaming either one renames the domain.
+     */
+    public const FRONT_TRANSLATION_DOMAIN = 'payplugoney.fo.flexy';
 
     /**
      * Session key set by the OpenApi module when the customer picks an option in the
@@ -143,44 +149,15 @@ class PayPlugOney extends AbstractPaymentModule
         return OneyEligibilityChecker::MAXIMUM_AMOUNT_IN_CENTS;
     }
 
-    public function getHooks(): array
-    {
-        return [
-            [
-                'type' => TemplateDefinition::FRONT_OFFICE,
-                'code' => 'pay_plug_oney.terms_and_conditions',
-                'title' => [
-                    'en_US' => 'Oney hook to place in terms and conditions page',
-                    'fr_FR' => 'Hook Oney a placer sur la page des cgv',
-                ],
-                'block' => false,
-                'active' => true,
-            ],
-        ];
-    }
-
     /**
-     * True on Thelia 3 (twig branch), false on Thelia 2. Gates the Thelia 3-only code
-     * paths (default-twig hooks, LiveComponent) so the module works on both versions.
+     * No getHooks(): the pay_plug_oney.terms_and_conditions front-office hook existed for the
+     * Smarty front-office only. Flexy has no front hooks, so a theme fetches the
+     * payplugoney_terms_and_conditions route instead.
      */
-    public static function isThelia3(): bool
-    {
-        return class_exists(\Thelia\Core\Install\Database::class);
-    }
-
     public static function configureServices(ServicesConfigurator $servicesConfigurator): void
     {
-        $exclude = [__DIR__.'/I18n/*'];
-
-        if (!self::isThelia3()) {
-            // These depend on Thelia 3-only classes (default-twig back-office,
-            // Symfony UX components) and must not be registered on Thelia 2.
-            $exclude[] = __DIR__.'/Hook/Back/*';
-            $exclude[] = __DIR__.'/Twig/*';
-        }
-
         $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
-            ->exclude($exclude)
+            ->exclude([__DIR__.'/I18n/*'])
             ->autowire(true)
             ->autoconfigure(true);
     }

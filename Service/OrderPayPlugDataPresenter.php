@@ -30,9 +30,8 @@ use Thelia\Model\OrderStatus;
  * variables — including the two FormViews it requires, which the previous implementation
  * omitted, breaking the block as soon as a paid Oney order was edited.
  *
- * Shared by the Thelia 2 (Smarty) and Thelia 3 (Twig) hooks so the preparation exists
- * once. It does duplicate PayPlugModule's own preparation logic; removing that would
- * require making it extractable upstream, which is out of this module's scope.
+ * It does duplicate PayPlugModule's own preparation logic; removing that would require
+ * making it extractable upstream, which is out of this module's scope.
  */
 final class OrderPayPlugDataPresenter
 {

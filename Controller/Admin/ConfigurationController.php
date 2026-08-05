@@ -16,9 +16,8 @@ use Thelia\Core\Translation\Translator;
 use Thelia\Tools\URL;
 
 /**
- * Routes are declared in Config/routing.xml only — never with #[Route] attributes. Thelia 2's
- * router does not read PHP attributes (the routes would silently vanish), and Thelia 3 loads
- * both mechanisms (the routes would be registered twice).
+ * Routes are declared in Config/routing.xml only — never with #[Route] attributes: Thelia 3
+ * loads both mechanisms, so the routes would be registered twice.
  */
 class ConfigurationController extends BaseAdminController
 {
@@ -119,9 +118,8 @@ class ConfigurationController extends BaseAdminController
     }
 
     /**
-     * On Thelia 3 the error has to travel through the flash bag: the configuration screen is
-     * re-rendered after a redirect, which loses the ParserContext the Smarty form error
-     * mechanism relies on.
+     * The error has to travel through the flash bag: the configuration screen is re-rendered
+     * after a redirect, which loses the ParserContext the form error mechanism relies on.
      */
     private function handleSaveError(\Exception $exception, mixed $form): Response
     {
@@ -131,18 +129,14 @@ class ConfigurationController extends BaseAdminController
             $form
         );
 
-        if (PayPlugOney::isThelia3()) {
-            $session = $this->getRequest()->getSession();
+        $session = $this->getRequest()->getSession();
 
-            if ($session instanceof FlashBagAwareSessionInterface) {
-                $session->getFlashBag()->add('danger', $exception->getMessage());
-            }
-
-            return new RedirectResponse(
-                URL::getInstance()->absoluteUrl(self::PAYPLUG_CONFIGURATION_PATH).self::ONEY_CONFIGURATION_ANCHOR
-            );
+        if ($session instanceof FlashBagAwareSessionInterface) {
+            $session->getFlashBag()->add('danger', $exception->getMessage());
         }
 
-        return $this->generateRedirect($this->getSafeRedirectUrl($form->getErrorUrl()));
+        return new RedirectResponse(
+            URL::getInstance()->absoluteUrl(self::PAYPLUG_CONFIGURATION_PATH).self::ONEY_CONFIGURATION_ANCHOR
+        );
     }
 }

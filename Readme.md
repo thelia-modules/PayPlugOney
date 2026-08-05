@@ -7,8 +7,8 @@ payment module.
 satellite of it: it reuses its payment service, its payment events and its order-edit
 back-office template.
 
-Compatible with **Thelia 2 and Thelia 3** from a single codebase (see
-[Thelia 3 support](#thelia-3-support)).
+**Thelia 3 only** (twig branch, Symfony 7.4, PHP 8.3, Flexy front-office). For Thelia 2, use
+the 2.1 line.
 
 ## Installation
 
@@ -20,7 +20,7 @@ Compatible with **Thelia 2 and Thelia 3** from a single codebase (see
 ### Composer
 
 ```
-composer require thelia/pay-plug-oney-module ~2.2.0
+composer require thelia/pay-plug-oney-module ~2.3.0
 ```
 
 ## Configuration
@@ -41,31 +41,23 @@ is set.
 **Amount range** — Oney only accepts orders between **100 € and 3 000 €**. The bounds live in
 `Service\OneyEligibilityChecker`.
 
-## Thelia 3 support
+## Where each surface lives
 
-The module runs unchanged on both versions. The Thelia 3 code paths are gated on
-`PayPlugOney::isThelia3()` (which tests for `Thelia\Core\Install\Database`), and the Thelia 2
-Smarty templates are kept in place for existing installs.
+| Concern | Implementation |
+|---|---|
+| Back-office configuration | `Hook\Back\OneyConfigurationHook` → `backOffice/default-twig/PayPlugOney/oney-configuration.html.twig` |
+| Order edit block | `Hook\Back\OrderEditHook` → reuses PayPlugModule's `order_pay_plug.html.twig` |
+| Instalment selector at checkout | Payment module options API (`TheliaEvents::MODULE_PAYMENT_GET_OPTIONS`) |
+| Simulation pop-in | `PayPlugOney:OneySimulation` LiveComponent |
+| Oney terms and conditions | `/oney/terms-and-conditions` route |
+| Tax engine access | `Service\OneyCartAmountResolver` (`Thelia\Domain\Taxation\TaxEngine\TaxEngine`) |
 
-> **Note** — PayPlugModule itself is currently Thelia 3 only (it imports
-> `Thelia\Core\Install\Database` and `Thelia\Domain\Taxation\TaxEngine\TaxEngine`). Since it is
-> a required dependency, PayPlugOney's Thelia 2 paths cannot actually execute until
-> PayPlugModule becomes bi-compatible too. They are kept ready for that.
-
-### What changed
-
-| Concern | Thelia 2 | Thelia 3 |
-|---|---|---|
-| Back-office configuration | `Hook\ConfigurationHook` → Smarty `hook_configuration.html` | `Hook\Back\OneyConfigurationHook` → `backOffice/default-twig/PayPlugOney/oney-configuration.html.twig` |
-| Order edit block | `Hook\BackHook` (asset resolver indirection) | `Hook\Back\OrderEditHook` → reuses PayPlugModule's `order_pay_plug.html.twig` |
-| Instalment selector at checkout | `order-invoice.payment-extra` Smarty hook | Payment module options API (`TheliaEvents::MODULE_PAYMENT_GET_OPTIONS`) |
-| Simulation pop-in | Hand-written `XMLHttpRequest` + `innerHTML` | `PayPlugOney:OneySimulation` LiveComponent |
-| Oney terms and conditions | `pay_plug_oney.terms_and_conditions` front hook | `/oney/terms-and-conditions` route |
-| Tax engine access | `Thelia\TaxEngine\TaxEngine` injected by type | `Service\OneyCartAmountResolver`, injected by service id |
+Flexy has **no front-office hooks**, which is why the checkout selector goes through the
+payment options API and the terms through a route rather than through `{hook}` insertion points.
 
 ### Payment module options
 
-On Thelia 3, `Thelia\Domain\Module\Payment\PaymentModuleService` dispatches
+`Thelia\Domain\Module\Payment\PaymentModuleService` dispatches
 `TheliaEvents::MODULE_PAYMENT_GET_OPTIONS` to build `GET /api/front/payment/modules`. The Oney
 plans are published there by `EventListener\PaymentOptionListener` as an option group named
 `pay_plug_oney_type`:
@@ -122,9 +114,17 @@ document.querySelector('#oney-simulation').innerHTML = await response.text()
 ```
 
 The component expects the theme to style the `.oneyCta` / `.oneyPopin` / `.oneyOption` classes.
-On Thelia 2 they come from the `main.stylesheet` hook; on Thelia 3 there is no such hook, so
-copy the rules from `templates/frontOffice/default/PayPlugOney/hook/oneyStyleSheet.html` into
-your theme.
+Flexy has no `main.stylesheet` hook to inject them, so the module ships the rules as a plain
+stylesheet next to the images it references:
+
+```
+templates/frontOffice/flexy/PayPlugOney/assets/oney.css
+```
+
+Import it from your theme, or copy the rules in. The `url()` paths are relative to that
+directory, so the images resolve once the module's assets are deployed to
+`<docroot>/assets/modules/payplugoney/assets/` — the same location the back-office template
+already reads its logo from.
 
 ## Architecture
 
@@ -137,8 +137,6 @@ Service/
   OrderPayPlugDataPresenter   Variables for PayPlugModule's order-edit template
   OneyService                 extends PayPlugModule\Service\PaymentService
   OrderStatusService          Owns the `oney_authorization_pending` status
-Contract/
-  TaxContextProviderInterface Structural PHPDoc type — implemented by nobody, see the class
 ```
 
 Amounts are **always in cents**, matching the PayPlug API. Method names state their unit; use
@@ -176,17 +174,41 @@ it would change the project's composer dependencies.
 
 ```
 templates/
-├── backOffice/default/PayPlugOney/…        Smarty, Thelia 2
-├── backOffice/default-twig/PayPlugOney/…   Twig, Thelia 3
-├── frontOffice/default/PayPlugOney/…       Smarty, Thelia 2
-├── frontOffice/flexy/PayPlugOney/…         Twig, Thelia 3
+├── backOffice/default-twig/PayPlugOney/…   Back-office
+├── frontOffice/flexy/PayPlugOney/…         Front-office (+ assets/oney.css and images)
 └── components/OneySimulation.html.twig     LiveComponent
 ```
 
 A module's template directory is named after the **base theme** it targets, never after a
-project theme: `flexy` for the Thelia 3 front-office (from which `vallereuil-scierie` and any
-other project theme inherit), `default-twig` for the Thelia 3 back-office, `default` for the
-Thelia 2 Smarty templates. The two engines therefore never share a directory.
+project theme: `flexy` for the front-office (from which `vallereuil-scierie` and any other
+project theme inherit), `default-twig` for the back-office.
+
+The directory name is also the **translation domain suffix**: Thelia builds the domain by
+scanning `templates/<type>/*` and mirrors it under `I18n/<type>/<same name>/`. Hence
+`payplugoney.fo.flexy` and `payplugoney.bo.default-twig` — renaming a template directory
+renames its domain, and the matching `I18n/` directory has to move with it.
+
+### Translating templates
+
+| Where | Filter |
+|---|---|
+| `backOffice/default-twig/…` | `\|trans({}, 'payplugoney.bo.default-twig')` |
+| `frontOffice/flexy/…`, `components/…` | `\|payplugoney_trans` |
+
+The native `|trans` filter resolves through the **Symfony** translator, which only carries the
+theme's `messages` catalogue. Module catalogues are registered on
+`Thelia\Core\Translation\Translator` instead, so `|trans({}, '<module domain>')` returns the
+English source string.
+
+The Twig back-office bridges the two with a `translator` decorator, but only for `/admin`
+requests — deliberately, to leave the front office alone — and it ships inside the
+composer-installed `default-twig` theme, so it can be neither relied on nor extended from a
+module. Back-office templates therefore use `|trans`, front-office ones
+`|payplugoney_trans` (`Twig\FrontTranslationExtension`, backed by the Thelia translator).
+
+Strings built in PHP (`Service\OneySimulationHtmlRenderer`,
+`Service\OneySimulationPresenter`) already call the Thelia translator directly and need
+nothing special.
 
 LiveComponent templates are the exception and sit in `templates/components/`, outside any theme
 directory — they belong to no theme, being rendered through `#[AsLiveComponent(template: …)]`
@@ -200,13 +222,10 @@ which points at `templates/` — hence the full path, e.g.
 
 ### Conventions worth knowing
 
-- **Routes are declared in `Config/routing.xml` only.** Never add `#[Route]`: Thelia 2 does not
-  read PHP attributes (routes vanish silently) and Thelia 3 loads both mechanisms (routes get
-  registered twice).
-- **Thelia 2 and Thelia 3 hooks use different method names.** `module_hook` rows are keyed by
-  (module, hook, method), so a shared name makes one registration overwrite the other.
-- **Declare Thelia 2 hooks with `method=`, never `templates=`.** A `templates=` declaration is
-  rendered without calling the PHP method, bypassing the `isThelia3()` guard.
+- **Routes are declared in `Config/routing.xml` only.** Never add `#[Route]`: Thelia 3 loads
+  both mechanisms, so the route would be registered twice.
+- **Hooks declare themselves through `getSubscribedHooks()`**, auto-discovered by Thelia 3.
+  `Config/config.xml` carries no `<hooks>` section.
 - **Back-office hook templates are prefixed with the module name.** The Twig namespace is flat
   across modules, so an unprefixed name silently collides.
 
@@ -217,18 +236,27 @@ which points at `templates/` — hence the full path, e.g.
   refund notification failed. The broken subscription was removed rather than given an invented
   behaviour: deciding which status a partial refund should produce is a business decision.
   See `EventListener\NotificationListener`.
-- The Smarty templates under `templates/frontOffice/default` and `templates/backOffice/default`
-  are retained for Thelia 2 installs; a Thelia 3 back-office does not render them.
-- **`Hook\FrontHook::addBaseSimulationJs()`** and its template
-  `templates/frontOffice/default/PayPlugOney/hook/baseSimulationJs.html` are dead code: the hook
-  has never been declared in `config.xml`, so the method is never invoked. Left in place pending
-  a decision to remove it.
 - **`PayPlugModule` still has the N+1** on order-edit taxes that `OrderPayPlugDataPresenter`
   fixes on this side. It cannot be fixed durably there: the module is installed by composer into
   gitignored `vendor/`, so any edit is wiped by the next `composer install`. It needs an upstream
   patch on `thelia/pay-plug-module`.
 
 ## Changelog
+
+### 2.3.0
+
+- **Thelia 2 support dropped**: the Smarty templates, the three Thelia 2 hook classes
+  (`Hook\ConfigurationHook`, `Hook\BackHook`, `Hook\FrontHook`), the
+  `pay_plug_oney.terms_and_conditions` hook declaration and the `isThelia3()` gates are gone.
+  The tax engine is injected by type again, so `Contract\TaxContextProviderInterface` went too.
+- Translation domains follow the Thelia 3 template directories: `payplugoney.fo.flexy` and
+  `payplugoney.bo.default-twig` (was `.fo.default` / `.bo.default`).
+- The front-office stylesheet is now a plain asset,
+  `templates/frontOffice/flexy/PayPlugOney/assets/oney.css`, instead of a Smarty hook template.
+- **Fixed**: front-office templates rendered their English source strings instead of the
+  translation. `|trans` cannot reach a module catalogue outside `/admin`; they now use
+  `|payplugoney_trans`. Introduced by the Twig rewrite and masked until now by the Smarty
+  templates, whose `{intl}` tag went through the Thelia translator.
 
 ### 2.2.0
 

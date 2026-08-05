@@ -24,7 +24,7 @@ use Thelia\Model\Order;
 /**
  * Publishes the Oney instalment plans (3x / 4x) as payment module options.
  *
- * Two mechanisms request those options and BOTH are live on a Thelia 3 install:
+ * Two mechanisms request those options and BOTH are live:
  *
  *  - Thelia\Domain\Module\Payment\PaymentModuleService (native, feeds
  *    /api/front/payment/modules, which the Flexy theme consumes)

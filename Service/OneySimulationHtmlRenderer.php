@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PayPlugOney\Service;
 
+use PayPlugOney\PayPlugOney;
 use PayPlugOney\Service\Dto\OneySimulationOption;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Thelia\Core\Translation\Translator;
@@ -16,10 +17,8 @@ use Thelia\Tools\MoneyFormat;
  *
  *  - The markup is consumed by PaymentModuleOption::setDescription(), which travels
  *    through the JSON API. It is a legal/financial disclosure, not themeable design.
- *  - On Thelia 3 it could not be rendered from a template anyway: ParserInterface resolves
- *    to ParserFallback, whose render() and setTemplateDefinition() are `: never` and throw.
- *  - A single implementation serves Thelia 2 and Thelia 3, instead of two twin templates in
- *    two different engines that would inevitably drift apart.
+ *  - It could not be rendered from a template anyway: ParserInterface resolves to
+ *    ParserFallback, whose render() and setTemplateDefinition() are `: never` and throw.
  *
  * SECURITY — this class is the only escaping barrier. The consuming theme has to output the
  * description with |raw (Twig autoescapes by default), and neither API Platform nor
@@ -31,10 +30,10 @@ use Thelia\Tools\MoneyFormat;
 final class OneySimulationHtmlRenderer
 {
     /**
-     * Front-office translation domain: reuses the keys already shipped in
-     * I18n/frontOffice/default rather than duplicating them under the module's root domain.
+     * Reuses the keys already shipped in I18n/frontOffice/flexy rather than duplicating them
+     * under the module's root domain.
      */
-    private const TRANSLATION_DOMAIN = 'payplugoney.fo.default';
+    private const TRANSLATION_DOMAIN = PayPlugOney::FRONT_TRANSLATION_DOMAIN;
 
     public function __construct(
         private readonly RequestStack $requestStack,
@@ -103,8 +102,7 @@ final class OneySimulationHtmlRenderer
     }
 
     /**
-     * Formats cents using the current currency. MoneyFormat is the only formatter available
-     * on both Thelia 2 and Thelia 3.
+     * Formats cents using the current currency.
      */
     private function money(int $amountInCents): string
     {

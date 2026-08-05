@@ -1,0 +1,4 @@
+{# Standalone wrapper around the Oney simulation LiveComponent, served by the
+   payplugoney_simulation route so a theme can fetch it without referencing the component
+   directly (a compile-time reference would break the page if the module were disabled). #}
+{{ component('PayPlugOney:OneySimulation', {amountInCents: amountInCents, open: true}) }}

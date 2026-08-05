@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPlugOney\EventListener;
 
+use PayPlugModule\Model\PayPlugConfigValue;
 use PayPlugModule\PayPlugModule;
 use PayPlugOney\PayPlugOney;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -10,52 +13,59 @@ use Thelia\Core\Event\Order\OrderEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Log\Tlog;
 
+/**
+ * Defers the order confirmation email until the Oney payment is actually settled, when
+ * PayPlugModule is configured to do so.
+ *
+ * Oney authorises before confirming, so the default "email on order placed" behaviour would
+ * tell the customer their order is confirmed while Oney may still decline it.
+ */
 class ConfirmationEmailListener implements EventSubscriberInterface
 {
-    /**
-     * @param OrderEvent $event
-     *
-     * @throws \Exception if the message cannot be loaded.
-     */
-    public function sendConfirmationEmail(OrderEvent $event)
+    public static function getSubscribedEvents(): array
     {
-        if (PayPlugModule::getConfigValue('send_confirmation_message_only_if_paid')) {
-            // We send the order confirmation email only if the order is paid
-            $order = $event->getOrder();
+        return [
+            TheliaEvents::ORDER_UPDATE_STATUS => ['updateStatus', 128],
+            TheliaEvents::ORDER_SEND_CONFIRMATION_EMAIL => ['sendConfirmationEmail', 129],
+        ];
+    }
 
-            if (!$order->isPaid() && $order->getPaymentModuleId() === PayPlugOney::getModuleId()) {
-                $event->stopPropagation();
-            }
+    /**
+     * Stops the default confirmation email for an unpaid Oney order.
+     */
+    public function sendConfirmationEmail(OrderEvent $event): void
+    {
+        if (!self::shouldWaitForPayment()) {
+            return;
+        }
+
+        $order = $event->getOrder();
+
+        if (!$order->isPaid() && $order->getPaymentModuleId() === PayPlugOney::getModuleId()) {
+            $event->stopPropagation();
         }
     }
 
-    /*
-     * Check if we are the order payment module, and if order new status is paid, send a confirmation email to the customer.
-     *
-     * @param OrderEvent $event
-     * @param $eventName
-     * @param EventDispatcherInterface $dispatcher
-     * @throws \Propel\Runtime\Exception\PropelException
+    /**
+     * Sends the confirmation email once the Oney order becomes paid.
      */
-    public function updateStatus(OrderEvent $event, $eventName, EventDispatcherInterface $dispatcher)
+    public function updateStatus(OrderEvent $event, string $eventName, EventDispatcherInterface $dispatcher): void
     {
         $order = $event->getOrder();
 
-        if ($order->isPaid() && $order->getPaymentModuleId() === PayPlugOney::getModuleId()) {
-            // Send confirmation email if required.
-            if (PayPlugModule::getConfigValue('send_confirmation_message_only_if_paid')) {
-                $dispatcher->dispatch($event, TheliaEvents::ORDER_SEND_CONFIRMATION_EMAIL);
-            }
-
-            Tlog::getInstance()->debug("Confirmation email sent to customer " . $order->getCustomer()->getEmail());
+        if (!$order->isPaid() || $order->getPaymentModuleId() !== PayPlugOney::getModuleId()) {
+            return;
         }
+
+        if (self::shouldWaitForPayment()) {
+            $dispatcher->dispatch($event, TheliaEvents::ORDER_SEND_CONFIRMATION_EMAIL);
+        }
+
+        Tlog::getInstance()->debug('Confirmation email sent to customer '.$order->getCustomer()->getEmail());
     }
 
-    public static function getSubscribedEvents()
+    private static function shouldWaitForPayment(): bool
     {
-        return [
-            TheliaEvents::ORDER_UPDATE_STATUS           => ['updateStatus', 128],
-            TheliaEvents::ORDER_SEND_CONFIRMATION_EMAIL => ['sendConfirmationEmail', 129]
-        ];
+        return (bool) PayPlugModule::getConfigValue(PayPlugConfigValue::SEND_CONFIRMATION_MESSAGE_ONLY_IF_PAID);
     }
 }

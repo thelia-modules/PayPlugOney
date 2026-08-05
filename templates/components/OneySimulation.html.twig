@@ -1,0 +1,91 @@
+{# Oney instalment simulation pop-in (Flexy front-office).
+   Usage from a theme template or through the payplugoney_simulation route:
+     {{ component('PayPlugOney:OneySimulation', {amountInCents: 150000}) }}
+   The theme is expected to style the .oneyCta / .oneyPopin classes, see the module README. #}
+<div {{ attributes }} class="oneyCta" data-controller="payplugoney-simulation">
+    {% if this.eligible %}
+        {% if not this.open %}
+            <button type="button" class="oneyCta_button"
+                    data-action="live#action" data-live-action-param="openSimulation">
+                <span>{{ 'Pay in'|payplugoney_trans }}</span>
+                <span class="oneyCta_logo oneyLogo oneyLogo-x3x4"></span>
+                <span class="oneyCta_tooltip oneyLogo oneyLogo-tooltip"></span>
+            </button>
+        {% else %}
+            {% set options = this.options %}
+
+            {% if options is empty %}
+                <span class="oneyPopin oneyPopin_error">
+                    {{ 'The total amount of your order must be between 100.00 € and 3000.00 € to pay with Oney with credit card.'|payplugoney_trans }}
+                </span>
+            {% else %}
+                <span class="oneyPopin oneyPopin-open">
+                    {# Closing is client-side: the markup is already here, so no LiveAction and
+                       no server round trip. #}
+                    <button type="button" class="oneyPopin_close" data-oney-close>
+                        {{ 'Close'|payplugoney_trans }}
+                    </button>
+
+                    <span class="oneyPopin_title">
+                        {{ 'Pay'|payplugoney_trans }}<strong>{{ 'with credit card'|payplugoney_trans }}</strong>
+                    </span>
+
+                    {# Tabs are switched client-side: every plan is already rendered, so
+                       changing tab costs no server round-trip and no extra PayPlug API call. #}
+                    <ul class="oneyPopin_navigation">
+                        {% for option in options %}
+                            <li class="oneyPopin_navigation_li{{ loop.first ? ' selected' : '' }}"
+                                data-type="{{ option.code }}">
+                                <button type="button">{{ this.getOptionTitle(option) }}</button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    {% for option in options %}
+                        <span class="oneyPopin_plan{{ loop.first ? ' oneyPopin_option-show' : '' }}"
+                              data-type="{{ option.code }}">
+                            {# Markup produced by OneySimulationHtmlRenderer, which escapes every
+                               interpolated value; |raw is required because it is already HTML. #}
+                            {{ this.renderDetails(option)|raw }}
+                        </span>
+                    {% endfor %}
+
+                    <span class="oneyPopin_legal">{{ this.legalNotice }}</span>
+                </span>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+</div>
+
+<script>
+(function () {
+    // Scoped, idempotent tab switching. Kept inline and dependency-free so the module needs
+    // no asset build step of its own.
+    document.querySelectorAll('.oneyCta[data-controller="payplugoney-simulation"]').forEach(function (root) {
+        if (root.dataset.oneyTabsReady) { return; }
+        root.dataset.oneyTabsReady = '1';
+
+        root.addEventListener('click', function (event) {
+            // Close: purely local, no server round trip.
+            if (event.target.closest('[data-oney-close]')) {
+                var popin = root.querySelector('.oneyPopin');
+                if (popin) { popin.remove(); }
+
+                return;
+            }
+
+            var tab = event.target.closest('.oneyPopin_navigation_li');
+            if (!tab || !root.contains(tab)) { return; }
+
+            var selected = tab.getAttribute('data-type');
+
+            root.querySelectorAll('.oneyPopin_navigation_li').forEach(function (item) {
+                item.classList.toggle('selected', item.getAttribute('data-type') === selected);
+            });
+            root.querySelectorAll('.oneyPopin_plan').forEach(function (plan) {
+                plan.classList.toggle('oneyPopin_option-show', plan.getAttribute('data-type') === selected);
+            });
+        });
+    });
+})();
+</script>

@@ -107,14 +107,15 @@ final class OneySimulationHtmlRenderer
     private function money(int $amountInCents): string
     {
         $request = $this->requestStack->getCurrentRequest();
+        $amountInEuros = OneyEligibilityChecker::toEuros($amountInCents);
 
         if (null === $request) {
             // No request (CLI, worker): fall back to a plain decimal rather than crash.
-            return $this->escape(number_format($amountInCents / 100, 2, ',', ' '));
+            return $this->escape(number_format($amountInEuros, 2, ',', ' '));
         }
 
         return $this->escape(
-            MoneyFormat::getInstance($request)->formatByCurrency($amountInCents / 100)
+            MoneyFormat::getInstance($request)->formatByCurrency($amountInEuros)
         );
     }
 

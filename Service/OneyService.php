@@ -15,6 +15,12 @@ use Thelia\Model\Order;
  * Oney-specific payment operations, layered on top of PayPlugModule's generic payment
  * service (whose $dispatcher property and initAuth() method are used here).
  */
+/**
+ * NOT `final`, unlike every other service here: OneySimulationPresenter injects it with
+ * `#[Autowire(lazy: true)]`, and Symfony builds a lazy proxy by subclassing the service class.
+ * Marking it final makes the container fail to compile with "Cannot generate lazy proxy for
+ * service .lazy.oney_service".
+ */
 class OneyService extends PaymentService
 {
     /**

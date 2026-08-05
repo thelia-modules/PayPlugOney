@@ -52,8 +52,11 @@ is set.
 | Oney terms and conditions | `/oney/terms-and-conditions` route |
 | Tax engine access | `Service\OneyCartAmountResolver` (`Thelia\Domain\Taxation\TaxEngine\TaxEngine`) |
 
-Flexy has **no front-office hooks**, which is why the checkout selector goes through the
-payment options API and the terms through a route rather than through `{hook}` insertion points.
+Thelia 3 dropped the Smarty `{hook}` insertion points. It does have front-office hooks —
+`Thelia\Core\Hook\Theme\ThemeHookInterface` answered where a theme calls `theme_hook('point')` —
+but they only fire where the **active theme declares the point**, and `vallereuil-scierie`
+declares none. Hence the API/route based integration below. Wiring a `ThemeHookInterface`
+implementation is the cleaner long-term option (see *Front-office integration*).
 
 ### Payment module options
 
@@ -97,7 +100,8 @@ write a similar listener.
 
 Do **not** reference the LiveComponent or a module Twig function directly from a theme
 template: those references are resolved at compile time, so the whole page breaks if the module
-is disabled. Use the routes instead.
+is disabled. Use the routes below, or a `theme_hook()` point answered by a
+`ThemeHookInterface` implementation — both keep the theme independent of the module.
 
 | Route | Purpose |
 |---|---|
@@ -114,17 +118,20 @@ document.querySelector('#oney-simulation').innerHTML = await response.text()
 ```
 
 The component expects the theme to style the `.oneyCta` / `.oneyPopin` / `.oneyOption` classes.
-Flexy has no `main.stylesheet` hook to inject them, so the module ships the rules as a plain
-stylesheet next to the images it references:
+There is no `main.stylesheet` hook any more, so the module ships the rules as a plain stylesheet
+next to the images it references:
 
 ```
 templates/frontOffice/flexy/PayPlugOney/assets/oney.css
 ```
 
-Import it from your theme, or copy the rules in. The `url()` paths are relative to that
-directory, so the images resolve once the module's assets are deployed to
-`<docroot>/assets/modules/payplugoney/assets/` — the same location the back-office template
-already reads its logo from.
+Copy the file and the 5 images next to it into your theme's asset pipeline (Encore), or
+`@import` it from a theme stylesheet. The `url()` paths are relative, so they keep resolving as
+long as the images stay beside the CSS.
+
+> Do **not** expect `<docroot>/assets/modules/payplugoney/…` to exist: Thelia only deploys a
+> module's template assets when a hook asks for them through `BaseHook::addCSS()/addJS()`, which
+> is why `public/assets/backOffice/default-twig/` currently holds `Statistic/` and nothing else.
 
 ## Architecture
 

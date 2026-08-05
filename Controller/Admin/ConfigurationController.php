@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
-use Thelia\Core\Translation\Translator;
 use Thelia\Tools\URL;
 
 /**
@@ -109,7 +108,7 @@ class ConfigurationController extends BaseAdminController
         }
 
         throw new \Exception(
-            Translator::getInstance()->trans(
+            $this->translator->trans(
                 'You must either select a content or say you have added the hook for Oney terms and conditions',
                 [],
                 PayPlugOney::DOMAIN_NAME
@@ -124,7 +123,7 @@ class ConfigurationController extends BaseAdminController
     private function handleSaveError(\Exception $exception, mixed $form): Response
     {
         $this->setupFormErrorContext(
-            Translator::getInstance()->trans('Error', [], PayPlugOney::DOMAIN_NAME),
+            $this->translator->trans('Error', [], PayPlugOney::DOMAIN_NAME),
             $exception->getMessage(),
             $form
         );

@@ -125,12 +125,12 @@ class PayPlugOney extends AbstractPaymentModule
 
     public function getMinimumAmount(): int
     {
-        return intdiv(OneyEligibilityChecker::MINIMUM_AMOUNT_IN_CENTS, 100);
+        return (int) OneyEligibilityChecker::toEuros(OneyEligibilityChecker::MINIMUM_AMOUNT_IN_CENTS);
     }
 
     public function getMaximumAmount(): int
     {
-        return intdiv(OneyEligibilityChecker::MAXIMUM_AMOUNT_IN_CENTS, 100);
+        return (int) OneyEligibilityChecker::toEuros(OneyEligibilityChecker::MAXIMUM_AMOUNT_IN_CENTS);
     }
 
     /**
@@ -151,8 +151,9 @@ class PayPlugOney extends AbstractPaymentModule
 
     /**
      * No getHooks(): the pay_plug_oney.terms_and_conditions front-office hook existed for the
-     * Smarty front-office only. Flexy has no front hooks, so a theme fetches the
-     * payplugoney_terms_and_conditions route instead.
+     * Smarty front-office only, which Thelia 3 dropped. A theme now either fetches the
+     * payplugoney_terms_and_conditions route or declares a theme_hook() point for a
+     * ThemeHookInterface implementation to answer.
      */
     public static function configureServices(ServicesConfigurator $servicesConfigurator): void
     {

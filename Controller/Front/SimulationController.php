@@ -71,7 +71,8 @@ class SimulationController extends BaseFrontController
 
     /**
      * Renders the Oney terms and conditions, so a theme can include them where it displays
-     * its own terms: Flexy has no front-office hook to render them into.
+     * its own terms. Served as a route because the active theme declares no theme_hook() point
+     * this module could answer (see ThemeHookInterface).
      */
     public function termsAndConditions(Environment $twig): Response
     {

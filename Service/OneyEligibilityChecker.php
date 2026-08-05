@@ -36,4 +36,13 @@ final class OneyEligibilityChecker
     {
         return (int) round($amountInEuros * 100);
     }
+
+    /**
+     * The inverse of toCents(). Exists so no caller open-codes `/ 100` — the whole point of
+     * this class is that a unit conversion happens in exactly one place.
+     */
+    public static function toEuros(int $amountInCents): float
+    {
+        return $amountInCents / 100;
+    }
 }

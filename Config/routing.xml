@@ -27,8 +27,8 @@
     </route>
 
     <!-- Oney terms and conditions, for a theme to include where it displays its own. A route
-         rather than a hook: Thelia 3 front-office hooks (ThemeHookInterface) only fire where the
-         active theme declares a theme_hook() point, and this one does not. -->
+         because there is no usable front-office hook: ThemeHookInterface exists but nothing
+         consumes its tag and no theme_hook() Twig function is registered. -->
     <route id="payplugoney_terms_and_conditions" path="/oney/terms-and-conditions">
         <default key="_controller">PayPlugOney\Controller\Front\SimulationController::termsAndConditions</default>
     </route>

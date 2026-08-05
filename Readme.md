@@ -52,11 +52,11 @@ is set.
 | Oney terms and conditions | `/oney/terms-and-conditions` route |
 | Tax engine access | `Service\OneyCartAmountResolver` (`Thelia\Domain\Taxation\TaxEngine\TaxEngine`) |
 
-Thelia 3 dropped the Smarty `{hook}` insertion points. It does have front-office hooks —
-`Thelia\Core\Hook\Theme\ThemeHookInterface` answered where a theme calls `theme_hook('point')` —
-but they only fire where the **active theme declares the point**, and `vallereuil-scierie`
-declares none. Hence the API/route based integration below. Wiring a `ThemeHookInterface`
-implementation is the cleaner long-term option (see *Front-office integration*).
+Thelia 3 dropped the Smarty `{hook}` insertion points and has **no working replacement** on the
+front office: `Thelia\Core\Hook\Theme\ThemeHookInterface` and its autoconfigured
+`thelia.theme_hook` tag exist, but nothing consumes the tag and no `theme_hook()` Twig function is
+registered anywhere — checked across core, both themes and every installed module. Two services
+carry the tag and are never called. Hence the API/route based integration below.
 
 ### Payment module options
 
@@ -100,8 +100,8 @@ write a similar listener.
 
 Do **not** reference the LiveComponent or a module Twig function directly from a theme
 template: those references are resolved at compile time, so the whole page breaks if the module
-is disabled. Use the routes below, or a `theme_hook()` point answered by a
-`ThemeHookInterface` implementation — both keep the theme independent of the module.
+is disabled. Use the routes below, fetched client-side, which keeps the theme independent of the
+module.
 
 | Route | Purpose |
 |---|---|

@@ -24,10 +24,12 @@
         getSubscribedHooks(), which Thelia 3 auto-discovers. The front-office needs none —
         the Smarty front-office hooks are gone, so the instalment selector comes from the payment
         module options API (EventListener/PaymentOptionListener) and the simulation pop-in from the
-        PayPlugOney:OneySimulation LiveComponent. Thelia 3 does offer front-office hooks
-        (Thelia\Core\Hook\Theme\ThemeHookInterface + the theme_hook() Twig function), but they
-        only fire where the ACTIVE THEME declares a hook point — vallereuil-scierie declares none
-        today, hence the API/route based integration.
+        PayPlugOney:OneySimulation LiveComponent.
+
+        Thelia 3 ships Thelia\Core\Hook\Theme\ThemeHookInterface and autoconfigures a
+        thelia.theme_hook tag, but NOTHING consumes that tag and no theme_hook() Twig function is
+        registered anywhere (core, themes or modules) — the mechanism is inert in this version.
+        Hence the API/route based integration.
     -->
 
 </config>

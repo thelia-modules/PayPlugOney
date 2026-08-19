@@ -80,7 +80,8 @@ class ConfigurationForm extends BaseForm
 
     private function getCurrentLocale(): string
     {
-        $lang = $this->getRequest()->getSession()->get('thelia.current.lang');
+        $request = $this->getRequest();
+        $lang = $request->hasSession() ? $request->getSession()->get('thelia.current.lang') : null;
 
         if ($lang instanceof Lang && null !== $lang->getLocale()) {
             return $lang->getLocale();

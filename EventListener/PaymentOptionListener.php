@@ -170,14 +170,28 @@ class PaymentOptionListener implements EventSubscriberInterface
             return [];
         }
 
-        /** @var Session $session */
-        $session = $this->requestStack->getSession();
-
-        /** @var Order|null $order */
-        $order = $session->getOrder();
-
         return $this->simulationPresenter->getOptions(
-            $this->cartAmountResolver->getTaxedTotalInCents($cart, $order)
+            $this->cartAmountResolver->getTaxedTotalInCents($cart, $this->findSessionOrder())
         );
+    }
+
+    /**
+     * The in-progress order, which the amount resolver reads the postage from.
+     *
+     * Guarded rather than read through RequestStack::getSession(), which throws when there is
+     * no request or no session: this event must not fatal outside an HTTP request, and the
+     * resolver already treats a missing order as zero postage.
+     */
+    private function findSessionOrder(): ?Order
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        if (null === $request || !$request->hasSession()) {
+            return null;
+        }
+
+        $session = $request->getSession();
+
+        return $session instanceof Session ? $session->getOrder() : null;
     }
 }

@@ -84,7 +84,15 @@ class PayPlugOney extends AbstractPaymentModule
      */
     private function resolveSelectedOneyType(): ?string
     {
-        $session = $this->getRequest()->getSession();
+        $request = $this->getRequest();
+
+        // Guarded: no session means no customer choice to read, which is already a valid
+        // outcome here.
+        if (!$request->hasSession()) {
+            return null;
+        }
+
+        $session = $request->getSession();
 
         $oneyType = $session->get(OrderFormListener::PAY_PLUG_ONEY_TYPE_FIELD_NAME);
         if (null !== $oneyType) {

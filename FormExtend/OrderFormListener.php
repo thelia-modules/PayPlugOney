@@ -65,7 +65,7 @@ class OrderFormListener implements EventSubscriberInterface
     public function checkOneyTypeSelected(OrderEvent $event): void
     {
         $request = $this->requestStack->getCurrentRequest();
-        if (null === $request) {
+        if (null === $request || !$request->hasSession()) {
             return;
         }
 

@@ -4,8 +4,8 @@
   "license": "LGPL-3.0-or-later",
   "type": "thelia-module",
   "require": {
-    "thelia/installer": "~1.1",
-    "thelia/pay-plug-module": "^2.1"
+    "thelia/installer": "^1.6",
+    "thelia/pay-plug-module": "^3.0"
   },
   "extra": {
     "installer-name": "PayPlugOney"

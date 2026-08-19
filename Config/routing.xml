@@ -1,45 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-
+<!--
+    Routes are declared here in XML ONLY, never with #[Route] attributes on the controllers:
+    Thelia 3 loads a module's Config/routing.xml IN ADDITION to scanning #[Route] attributes,
+    so declaring both would register the same route twice.
+-->
 <routes xmlns="http://symfony.com/schema/routing"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
 
-    <!--
-
-    if a /admin/module/payplugoney/ route is provided, a "Configuration" button will be displayed
-    for the module in the module list. Clicking this button will invoke this route.
-
-
-
-
-    <route id="my_route_id" path="/admin/module/payplugoney/route-name">
-        <default key="_controller">PayPlugOney\Full\Class\Name\Of\YourAdminController::methodName</default>
-    </route>
-
-    <route id="my_route_id" path="/my/route/name">
-        <default key="_controller">PayPlugOney\Full\Class\Name\Of\YourOtherController::methodName</default>
-    </route>
-
-    ...add as many routes as required.
-
-    <route>
-    ...
-    </route>
-    -->
-
+    <!-- Providing an /admin/module/PayPlugOney route makes the back-office show a
+         "Configuration" button for the module in the module list. -->
     <route id="payplugoney_configuration_redirect" path="/admin/module/PayPlugOney">
         <default key="_controller">PayPlugOney\Controller\Admin\ConfigurationController::redirectToPayPlugConfiguration</default>
     </route>
 
-    <route id="payplugoney_configuration_save" path="/admin/module/payplugoney/configuration">
+    <route id="payplugoney_configuration_save" path="/admin/module/payplugoney/configuration" methods="POST">
         <default key="_controller">PayPlugOney\Controller\Admin\ConfigurationController::saveAction</default>
     </route>
 
     <route id="payplugoney_simulation" path="/oney/simulate">
         <default key="_controller">PayPlugOney\Controller\Front\SimulationController::simulate</default>
     </route>
+
     <route id="payplugoney_check_simulation" path="/oney/check_simulation">
         <default key="_controller">PayPlugOney\Controller\Front\SimulationController::isSimulationValid</default>
+    </route>
+
+    <!-- Oney terms and conditions, for a theme to include where it displays its own. A route
+         because there is no usable front-office hook: ThemeHookInterface exists but nothing
+         consumes its tag and no theme_hook() Twig function is registered. -->
+    <route id="payplugoney_terms_and_conditions" path="/oney/terms-and-conditions">
+        <default key="_controller">PayPlugOney\Controller\Front\SimulationController::termsAndConditions</default>
     </route>
 
     <route id="payplugoney_check_payment_form" path="/oney/payment_form">

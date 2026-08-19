@@ -4,75 +4,32 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://thelia.net/schema/dic/config http://thelia.net/schema/dic/config/thelia-1.0.xsd">
 
-    <loops>
-        <!-- sample definition
-        <loop name="MySuperLoop" class="PayPlugOney\Loop\MySuperLoop" />
-        -->
-    </loops>
-
     <forms>
         <form name="payplugoney_configuration_form" class="PayPlugOney\Form\ConfigurationForm" />
     </forms>
 
-    <commands>
-        <!--
-        <command class="PayPlugOney\Command\MySuperCommand" />
-        -->
-    </commands>
-
     <services>
+        <!--
+            Inherits PayPlugModule's payment service (that id is a public alias, which Symfony
+            resolves through for child definitions). Kept explicit rather than autowired
+            because the parent relationship cannot be expressed with autowiring.
+        -->
         <service id="oney_service" class="PayPlugOney\Service\OneyService" parent="payplugmodule_payment_service" public="true">
             <argument type="service" id="event_dispatcher"/>
         </service>
-
-        <service id="payplugoney_order_status_service" class="PayPlugOney\Service\OrderStatusService">
-            <argument type="service" id="event_dispatcher"/>
-        </service>
-
-        <service id="payplugoney_form_extend_order_listener" class="PayPlugOney\FormExtend\OrderFormListener">
-            <argument type="service" id="request_stack"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="payplugoney_notification_listener" class="PayPlugOney\EventListener\NotificationListener">
-            <argument type="service" id="event_dispatcher"/>
-            <argument type="service" id="payplugoney_order_status_service"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
     </services>
 
-    <hooks>
-        <hook id="payplugoney.hook" class="PayPlugOney\Hook\ConfigurationHook">
-            <tag name="hook.event_listener" event="payplugmodule.configuration.bottom" type="back" method="addOneyConfiguration" />
-        </hook>
-
-        <hook id="payplugoney.back.hook" class="PayPlugOney\Hook\BackHook">
-            <tag name="hook.event_listener" event="order-edit.payment-module-bottom" type="back" method="onOrderEditPaymentModuleBottom"/>
-            <tag name="hook.event_listener" event="order.edit-js " type="back" templates="js:PayPlugModule/order_pay_plug.js"/>
-        </hook>
-        <hook id="payplugoney.hook.front" class="PayPlugOney\Hook\FrontHook">
-            <argument type="service" id="thelia.taxEngine"/>
-            <argument type="service" id="oney_service"/>
-
-            <tag name="hook.event_listener" event="main.stylesheet" type="front" method="addOneyStylesheet" />
-
-            <tag name="hook.event_listener" event="product.details-bottom" type="front" method="addProductOneySimulation" />
-            <tag name="hook.event_listener" event="cart.after-javascript-include" type="front" method="addCartOneySimulation" />
-            <tag name="hook.event_listener" event="order-invoice.payment-extra" type="front" method="addOneyPaymentExtra"/>
-            <tag name="hook.event_listener" event="content.content-bottom" type="front" method="addOneyTermsAndConditionOnContent"/>
-            <tag name="hook.event_listener" event="pay_plug_oney.terms_and_conditions" type="front" method="addOneyTermsAndConditionOnModuleHook"/>
-        </hook>
-    </hooks>
-
     <!--
-    <exports>
+        No <hooks> section: the back-office hooks (Hook/Back/*) declare themselves through
+        getSubscribedHooks(), which Thelia 3 auto-discovers. The front-office needs none —
+        the Smarty front-office hooks are gone, so the instalment selector comes from the payment
+        module options API (EventListener/PaymentOptionListener) and the simulation pop-in from the
+        PayPlugOney:OneySimulation LiveComponent.
 
-    </exports>
+        Thelia 3 ships Thelia\Core\Hook\Theme\ThemeHookInterface and autoconfigures a
+        thelia.theme_hook tag, but NOTHING consumes that tag and no theme_hook() Twig function is
+        registered anywhere (core, themes or modules) — the mechanism is inert in this version.
+        Hence the API/route based integration.
     -->
 
-    <!--
-    <imports>
-
-    </imports>
-    -->
 </config>

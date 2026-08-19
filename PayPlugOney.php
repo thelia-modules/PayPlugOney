@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /*************************************************************************************/
 /*      This file is part of the Thelia package.                                     */
 /*                                                                                   */
@@ -12,63 +15,93 @@
 
 namespace PayPlugOney;
 
-use OpenApi\Controller\Front\CheckoutController;
 use PayPlugModule\Service\PaymentService;
 use PayPlugOney\FormExtend\OrderFormListener;
 use PayPlugOney\Model\PayPlugOneyConfigValue;
+use PayPlugOney\Service\OneyEligibilityChecker;
 use PayPlugOney\Service\OneyService;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Thelia\Core\Template\TemplateDefinition;
+use Symfony\Component\HttpFoundation\Response;
+use Thelia\Log\Tlog;
 use Thelia\Model\Order;
 use Thelia\Module\AbstractPaymentModule;
 use Thelia\Tools\URL;
 
 class PayPlugOney extends AbstractPaymentModule
 {
-    /** @var string */
-    const DOMAIN_NAME = 'payplugoney';
+    public const DOMAIN_NAME = 'payplugoney';
 
-    /*
-     * You may now override BaseModuleInterface methods, such as:
-     * install, destroy, preActivation, postActivation, preDeactivation, postDeactivation
-     *
-     * Have fun !
+    /**
+     * Front-office translation domain. Thelia derives it from the name of the template
+     * directory (`templates/frontOffice/flexy`) and reads the catalogues from the mirrored
+     * `I18n/frontOffice/flexy`, so renaming either one renames the domain.
      */
-    public function pay(Order $order)
+    public const FRONT_TRANSLATION_DOMAIN = 'payplugoney.fo.flexy';
+
+    /**
+     * Session key set by the OpenApi module when the customer picks an option in the
+     * headless checkout. Duplicated here on purpose: OpenApi is an optional dependency,
+     * referencing its controller class would make this module boot-dependent on it.
+     *
+     * @see \OpenApi\Controller\Front\CheckoutController::PAYMENT_MODULE_OPTION_CHOICES_SESSION_KEY
+     */
+    private const PAYMENT_MODULE_OPTION_CHOICES_SESSION_KEY = 'payment_module_option_choices';
+
+    private const ONEY_TYPE_OPTION_GROUP = 'pay_plug_oney_type';
+
+    public function pay(Order $order): ?Response
     {
         try {
             /** @var OneyService $oneyService */
             $oneyService = $this->container->get('oney_service');
 
-            $oneyType = $this->getRequest()->getSession()->get(OrderFormListener::PAY_PLUG_ONEY_TYPE_FIELD_NAME);
-
-            $orderTotalAmount = $this->getOrderPayTotalAmount($order);
-            if (null === $oneyType) {
-                $paymentOptions = $this->getRequest()->getSession()->get(CheckoutController::PAYMENT_MODULE_OPTION_CHOICES_SESSION_KEY);
-                if (!empty($paymentOptions)) {
-                    foreach ($paymentOptions as $group => $values) {
-                        if ($group !== 'pay_plug_oney_type') {
-                            continue;
-                        }
-
-                        $oneyType = array_pop($values);
-                    }
-                }
-            }
             $payment = $oneyService->sendOneyPayment(
                 $order,
-                $oneyType,
-                $orderTotalAmount
+                $this->resolveSelectedOneyType(),
+                $this->getOrderPayTotalAmount($order)
             );
         } catch (\Exception $exception) {
-            return  new RedirectResponse(URL::getInstance()->absoluteUrl('error'));
+            // Without this trace a failed payment is undebuggable: the customer only
+            // ever sees the generic error page.
+            Tlog::getInstance()->addError(
+                \sprintf(
+                    'PayPlugOney: payment failed for order %s: %s',
+                    $order->getRef(),
+                    $exception->getMessage()
+                )
+            );
+
+            return new RedirectResponse(URL::getInstance()->absoluteUrl('error'));
         }
 
         return new RedirectResponse($payment['url']);
     }
 
-    public function isValidPayment()
+    /**
+     * The instalment plan is chosen either through the standard order form (web checkout)
+     * or through the payment module options (headless checkout via OpenApi).
+     */
+    private function resolveSelectedOneyType(): ?string
+    {
+        $session = $this->getRequest()->getSession();
+
+        $oneyType = $session->get(OrderFormListener::PAY_PLUG_ONEY_TYPE_FIELD_NAME);
+        if (null !== $oneyType) {
+            return $oneyType;
+        }
+
+        $paymentOptions = $session->get(self::PAYMENT_MODULE_OPTION_CHOICES_SESSION_KEY);
+        if (!\is_array($paymentOptions) || [] === $paymentOptions) {
+            return null;
+        }
+
+        $selectedValues = $paymentOptions[self::ONEY_TYPE_OPTION_GROUP] ?? null;
+
+        return \is_array($selectedValues) ? array_pop($selectedValues) : null;
+    }
+
+    public function isValidPayment(): bool
     {
         if (!self::isPaymentEnabled()) {
             return false;
@@ -80,68 +113,52 @@ class PayPlugOney extends AbstractPaymentModule
             return false;
         }
 
-        $amount = $this->getCurrentOrderTotalAmount();
-
-        if ($amount * 100 < (new PayPlugOney)->getOneyMinimumAmount() || $amount * 100 > (new PayPlugOney)->getOneyMaximumAmount()) {
-            return false;
-        }
-
-        return true;
+        return OneyEligibilityChecker::isAmountEligible(
+            OneyEligibilityChecker::toCents($this->getCurrentOrderTotalAmount())
+        );
     }
 
-    public static function isPaymentEnabled()
+    public static function isPaymentEnabled(): bool
     {
-        return PayPlugOney::getConfigValue(PayPlugOneyConfigValue::PAYMENT_ENABLED, false);
+        return (bool) self::getConfigValue(PayPlugOneyConfigValue::PAYMENT_ENABLED);
     }
 
-    public function getMinimumAmount()
+    public function getMinimumAmount(): int
     {
-        return $this->getOneyMinimumAmount() / 100;
+        return (int) OneyEligibilityChecker::toEuros(OneyEligibilityChecker::MINIMUM_AMOUNT_IN_CENTS);
     }
 
-    public function getMaximumAmount()
+    public function getMaximumAmount(): int
     {
-        return $this->getOneyMaximumAmount() /100;
+        return (int) OneyEligibilityChecker::toEuros(OneyEligibilityChecker::MAXIMUM_AMOUNT_IN_CENTS);
     }
 
     /**
-     * For now it's fix but later it will be configurable
-     * @return int the minimum amount to pay with oney (in cents)
+     * @return int the minimum amount payable with Oney, in cents
      */
-    public function getOneyMinimumAmount()
+    public function getOneyMinimumAmount(): int
     {
-        return 10000;
+        return OneyEligibilityChecker::MINIMUM_AMOUNT_IN_CENTS;
     }
 
     /**
-     * For now it's fix but later it will be configurable
-     * @return int the maximum amount to pay with oney (in cents)
+     * @return int the maximum amount payable with Oney, in cents
      */
-    public function getOneyMaximumAmount()
+    public function getOneyMaximumAmount(): int
     {
-        return 300000;
+        return OneyEligibilityChecker::MAXIMUM_AMOUNT_IN_CENTS;
     }
 
-    public function getHooks()
-    {
-        return [
-            [
-                "type" => TemplateDefinition::FRONT_OFFICE,
-                "code" => "pay_plug_oney.terms_and_conditions",
-                "title" => [
-                    "en_US" => "Oney hook to place in terms and conditions page",
-                    "fr_FR" => "Hook Oney a placer sur la page des cgv",
-                ],
-                "block" => false,
-                "active" => true,
-            ]
-        ];
-    }
-
+    /**
+     * No getHooks(): the pay_plug_oney.terms_and_conditions front-office hook existed for the
+     * Smarty front-office only, which Thelia 3 dropped without shipping a working replacement
+     * (ThemeHookInterface exists but is not wired). A theme fetches the
+     * payplugoney_terms_and_conditions route instead.
+     */
     public static function configureServices(ServicesConfigurator $servicesConfigurator): void
     {
         $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
-            ->exclude([THELIA_MODULE_DIR . ucfirst(self::getModuleCode()). "/I18n/*"])
+            ->exclude([__DIR__.'/I18n/*'])
             ->autowire(true)
             ->autoconfigure(true);
     }

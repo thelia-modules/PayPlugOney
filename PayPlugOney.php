@@ -158,10 +158,9 @@ class PayPlugOney extends AbstractPaymentModule
     }
 
     /**
-     * No getHooks(): the pay_plug_oney.terms_and_conditions front-office hook existed for the
-     * Smarty front-office only, which Thelia 3 dropped without shipping a working replacement
-     * (ThemeHookInterface exists but is not wired). A theme fetches the
-     * payplugoney_terms_and_conditions route instead.
+     * No getHooks(): the pay_plug_oney.terms_and_conditions insertion point existed for the
+     * Smarty front-office only, which Thelia 3 dropped. A theme fetches the
+     * payplugoney_terms_and_conditions route instead, which also serves the headless checkout.
      */
     public static function configureServices(ServicesConfigurator $servicesConfigurator): void
     {

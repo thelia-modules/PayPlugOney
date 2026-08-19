@@ -52,11 +52,12 @@ is set.
 | Oney terms and conditions | `/oney/terms-and-conditions` route |
 | Tax engine access | `Service\OneyCartAmountResolver` (`Thelia\Domain\Taxation\TaxEngine\TaxEngine`) |
 
-Thelia 3 dropped the Smarty `{hook}` insertion points and has **no working replacement** on the
-front office: `Thelia\Core\Hook\Theme\ThemeHookInterface` and its autoconfigured
-`thelia.theme_hook` tag exist, but nothing consumes the tag and no `theme_hook()` Twig function is
-registered anywhere — checked across core, both themes and every installed module. Two services
-carry the tag and are never called. Hence the API/route based integration below.
+Thelia 3 dropped the Smarty `{hook}` insertion points. Its front-office replacement is
+`Thelia\Core\Hook\Theme\ThemeHookInterface`, rendered by the `theme_hook()` Twig function the
+TwigEngine module registers. This module does not use it: it integrates through the payment
+module options API and through routes, which also serves the headless checkout and keeps a theme
+independent of whether the module is installed. Moving the terms and conditions to a theme hook
+is a possible follow-up.
 
 ### Payment module options
 

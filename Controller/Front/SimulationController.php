@@ -74,9 +74,8 @@ class SimulationController extends BaseFrontController
 
     /**
      * Renders the Oney terms and conditions, so a theme can include them where it displays
-     * its own terms. Served as a route because Thelia 3 has no usable front-office hook:
-     * ThemeHookInterface exists but nothing consumes its tag, and no theme_hook() Twig function
-     * is registered.
+     * its own terms. Served as a route rather than as a theme hook: the same endpoint then
+     * serves the headless checkout, and the theme stays independent of the module.
      */
     #[Route('/oney/terms-and-conditions', name: 'payplugoney_terms_and_conditions')]
     public function termsAndConditions(Environment $twig): Response

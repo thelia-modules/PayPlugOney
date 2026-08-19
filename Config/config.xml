@@ -26,10 +26,10 @@
         (EventListener/PaymentOptionListener) and the simulation pop-in from the
         PayPlugOney:OneySimulation LiveComponent.
 
-        Thelia 3 ships Thelia\Core\Hook\Theme\ThemeHookInterface and autoconfigures a
-        thelia.theme_hook tag, but NOTHING consumes that tag and no theme_hook() Twig function is
-        registered anywhere (core, themes or modules) — the mechanism is inert in this version.
-        Hence the API/route based integration.
+        Thelia 3 does have front-office theme hooks — Thelia\Core\Hook\Theme\ThemeHookInterface,
+        rendered by the theme_hook() Twig function that the TwigEngine module registers. This
+        module does not use them yet: it went the API/route way, which also serves the headless
+        checkout. Moving the terms and conditions to a theme hook is a possible follow-up.
     -->
 
 </config>

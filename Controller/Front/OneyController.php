@@ -98,14 +98,15 @@ class OneyController extends BaseFrontController
      * The customer may have picked a different invoice address in the form that is being
      * validated, before it is persisted on the order.
      *
-     * Read from the form array rather than through Request::get('thelia_order_payment[…]'):
+     * Read from the POST bag rather than through Request::get('thelia_order_payment[…]'):
      * that bracket syntax never resolved, and the third "deep" argument it relied on was
      * removed from Symfony's Request::get() — so this check silently always fell back to the
-     * order's stored address.
+     * order's stored address. Request::get() is forbidden anyway; this route is documented as
+     * POST, so the payment form arrives in the request bag.
      */
     private function getSubmittedInvoiceAddressId(): ?int
     {
-        $formData = $this->getRequest()->get(OrderFormListener::THELIA_CUSTOMER_ORDER_PAYMENT_FROM_NAME);
+        $formData = $this->getRequest()->request->all()[OrderFormListener::THELIA_CUSTOMER_ORDER_PAYMENT_FROM_NAME] ?? null;
 
         if (!\is_array($formData)) {
             return null;

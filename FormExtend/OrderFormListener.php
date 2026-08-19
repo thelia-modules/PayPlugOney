@@ -75,7 +75,9 @@ class OrderFormListener implements EventSubscriberInterface
         // instalment plan in session.
         $session->set(self::PAY_PLUG_ONEY_TYPE_FIELD_NAME, null);
 
-        $formData = $request->get(self::THELIA_CUSTOMER_ORDER_PAYMENT_FROM_NAME);
+        // The POST bag explicitly, never Request::get(): this runs on ORDER_SET_PAYMENT_MODULE,
+        // dispatched while handling the submitted order payment form.
+        $formData = $request->request->all()[self::THELIA_CUSTOMER_ORDER_PAYMENT_FROM_NAME] ?? null;
         if (!\is_array($formData)) {
             return;
         }

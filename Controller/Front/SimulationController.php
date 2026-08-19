@@ -88,9 +88,12 @@ class SimulationController extends BaseFrontController
      * The amount is attacker-controlled, so it is coerced to a bounded integer. It only ever
      * reaches the eligibility check and the PayPlug simulation call, both of which expect
      * cents as an int.
+     *
+     * Read from the query bag explicitly rather than through Request::get(), which is
+     * forbidden: both routes are documented as GET with ?amount=<cents>.
      */
     private function getRequestedAmountInCents(): int
     {
-        return (int) round((float) $this->getRequest()->get('amount', 0));
+        return (int) round((float) $this->getRequest()->query->get('amount', 0));
     }
 }

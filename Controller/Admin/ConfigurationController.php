@@ -16,8 +16,7 @@ use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Tools\URL;
 
 /**
- * Routes are declared in Config/routing.xml only — never with #[Route] attributes: Thelia 3
- * loads both mechanisms, so the routes would be registered twice.
+ * Back-office configuration endpoints for Oney.
  */
 class ConfigurationController extends BaseAdminController
 {

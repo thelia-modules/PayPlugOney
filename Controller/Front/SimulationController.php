@@ -20,8 +20,6 @@ use Twig\Environment;
  * function directly, since that reference is resolved at compile time and breaks the whole
  * page when the module is disabled. Fetching this route keeps the theme independent of the
  * module.
- *
- * Routes are declared in Config/routing.xml only — see ConfigurationController for why.
  */
 class SimulationController extends BaseFrontController
 {

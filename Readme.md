@@ -229,8 +229,9 @@ which points at `templates/` — hence the full path, e.g.
 
 ### Conventions worth knowing
 
-- **Routes are declared in `Config/routing.xml` only.** Never add `#[Route]`: Thelia 3 loads
-  both mechanisms, so the route would be registered twice.
+- **Routes are declared with `#[Route]` attributes on the controllers.** Thelia 3 scans a
+  module's `Controller/` directory for them; a `Config/routing.xml` file still loads but is
+  deprecated, and declaring a route in both places registers it twice.
 - **Hooks declare themselves through `getSubscribedHooks()`**, auto-discovered by Thelia 3.
   `Config/config.xml` carries no `<hooks>` section.
 - **Back-office hook templates are prefixed with the module name.** The Twig namespace is flat

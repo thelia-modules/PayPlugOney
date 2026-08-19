@@ -7,6 +7,7 @@ namespace PayPlugOney\Controller\Front;
 use PayPlugOney\Service\OneyEligibilityChecker;
 use PayPlugOney\Service\OneySimulationThrottle;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Controller\Front\BaseFrontController;
 use Thelia\Core\HttpFoundation\JsonResponse;
 use Twig\Environment;
@@ -36,6 +37,7 @@ class SimulationController extends BaseFrontController
 
     private const TERMS_TEMPLATE = '@PayPlugOneyModule/frontOffice/flexy/PayPlugOney/terms-and-conditions.html.twig';
 
+    #[Route('/oney/simulate', name: 'payplugoney_simulation')]
     public function simulate(
         OneySimulationThrottle $throttle,
         Environment $twig,
@@ -62,6 +64,7 @@ class SimulationController extends BaseFrontController
      * Lets a theme check eligibility before displaying the Oney call to action, without
      * paying for a simulation call.
      */
+    #[Route('/oney/check_simulation', name: 'payplugoney_check_simulation')]
     public function isSimulationValid(): JsonResponse
     {
         return new JsonResponse([
@@ -75,6 +78,7 @@ class SimulationController extends BaseFrontController
      * ThemeHookInterface exists but nothing consumes its tag, and no theme_hook() Twig function
      * is registered.
      */
+    #[Route('/oney/terms-and-conditions', name: 'payplugoney_terms_and_conditions')]
     public function termsAndConditions(Environment $twig): Response
     {
         return new Response($twig->render(self::TERMS_TEMPLATE));

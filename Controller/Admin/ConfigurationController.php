@@ -9,6 +9,7 @@ use PayPlugOney\PayPlugOney;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
+use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
@@ -29,7 +30,11 @@ class ConfigurationController extends BaseAdminController
      *
      * No checkAuth here on purpose: this only redirects to an admin page, which enforces its
      * own authorisation, and the /admin firewall already requires authentication.
+     *
+     * Serving /admin/module/PayPlugOney is also what makes the back-office show a
+     * "Configuration" button for the module in the module list.
      */
+    #[Route('/admin/module/PayPlugOney', name: 'payplugoney_configuration_redirect')]
     public function redirectToPayPlugConfiguration(): Response
     {
         return $this->generateRedirect(
@@ -37,6 +42,7 @@ class ConfigurationController extends BaseAdminController
         );
     }
 
+    #[Route('/admin/module/payplugoney/configuration', name: 'payplugoney_configuration_save', methods: ['POST'])]
     public function saveAction(): Response
     {
         if (null !== $response = $this->checkAuth([AdminResources::MODULE], 'PayPlugOney', AccessManager::UPDATE)) {

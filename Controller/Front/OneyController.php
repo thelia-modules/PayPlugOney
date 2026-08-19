@@ -8,6 +8,7 @@ use PayPlugOney\FormExtend\OrderFormListener;
 use PayPlugOney\PayPlugOney;
 use PayPlugOney\Service\OneyAddressValidator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Routing\Attribute\Route;
 use Thelia\Controller\Front\BaseFrontController;
 use Thelia\Core\HttpFoundation\JsonResponse;
 use Thelia\Core\HttpFoundation\Session\Session;
@@ -22,8 +23,6 @@ use Thelia\Model\Order;
 /**
  * Validates, before handing over to Oney, the constraints Oney enforces on its side and
  * would otherwise reject the payment for.
- *
- * Routes are declared in Config/routing.xml only — see ConfigurationController for why.
  */
 class OneyController extends BaseFrontController
 {
@@ -36,6 +35,7 @@ class OneyController extends BaseFrontController
      * The dispatcher is injected as an argument: controllers have no getDispatcher()
      * helper method.
      */
+    #[Route('/oney/payment_form', name: 'payplugoney_check_payment_form')]
     public function checkPaymentFormValidity(
         // OneyAddressValidator rather than OneyService: it needs no PayPlug credentials, so an
         // unconfigured shop does not turn this endpoint into a 500.

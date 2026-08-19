@@ -31,7 +31,7 @@
     <required>
         <module version="&gt;=3.0.0">PayPlugModule</module>
     </required>
-    <thelia>2.5.0</thelia>
+    <thelia>3.0.0</thelia>
     <stability>other</stability>
     <mandatory>0</mandatory>
     <hidden>0</hidden>

@@ -4,10 +4,6 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://thelia.net/schema/dic/config http://thelia.net/schema/dic/config/thelia-1.0.xsd">
 
-    <forms>
-        <form name="payplugoney_configuration_form" class="PayPlugOney\Form\ConfigurationForm" />
-    </forms>
-
     <services>
         <!--
             Inherits PayPlugModule's payment service (that id is a public alias, which Symfony
@@ -20,10 +16,14 @@
     </services>
 
     <!--
-        No <hooks> section: the back-office hooks (Hook/Back/*) declare themselves through
-        getSubscribedHooks(), which Thelia 3 auto-discovers. The front-office needs none —
-        the Smarty front-office hooks are gone, so the instalment selector comes from the payment
-        module options API (EventListener/PaymentOptionListener) and the simulation pop-in from the
+        No <hooks> nor <forms> section: Thelia 3 auto-discovers both. The back-office hooks
+        (Hook/Back/*) declare themselves through getSubscribedHooks(), and ConfigurationForm is
+        registered under its getName() by RegisterFormPass, because BaseForm implements
+        FormInterface which the kernel autoconfigures.
+
+        The front-office needs no hook at all: the Smarty front-office hooks are gone, so the
+        instalment selector comes from the payment module options API
+        (EventListener/PaymentOptionListener) and the simulation pop-in from the
         PayPlugOney:OneySimulation LiveComponent.
 
         Thelia 3 ships Thelia\Core\Hook\Theme\ThemeHookInterface and autoconfigures a

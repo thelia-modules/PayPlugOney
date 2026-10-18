@@ -48,7 +48,7 @@ class NotificationListener implements EventSubscriberInterface
         // The PayPlug SDK exposes API fields as dynamic properties, which static analysis
         // cannot see on Payplug\Resource\Payment.
         /** @var string|null $transactionRef */
-        $transactionRef = $paymentResource->id; // @phpstan-ignore property.notFound
+        $transactionRef = $paymentResource->id;
         if (empty($transactionRef)) {
             return;
         }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PayPlugOney\EventListener;
 
-use OpenApi\Events\PaymentModuleOptionEvent as OpenApiPaymentModuleOptionEvent;
 use PayPlugOney\PayPlugOney;
 use PayPlugOney\Service\Dto\OneySimulationOption;
 use PayPlugOney\Service\OneyCartAmountResolver;
@@ -47,6 +46,11 @@ class PaymentOptionListener implements EventSubscriberInterface
      */
     private const PAYMENT_OPTIONS_EVENT = 'thelia.module.payment.options';
 
+    /**
+     * Class name kept as a string: the OpenApi module is optional, so the class may not exist.
+     */
+    private const OPEN_API_OPTION_EVENT_CLASS = 'OpenApi\\Events\\PaymentModuleOptionEvent';
+
     public function __construct(
         private readonly OneySimulationPresenter $simulationPresenter,
         private readonly OneySimulationHtmlRenderer $htmlRenderer,
@@ -76,7 +80,7 @@ class PaymentOptionListener implements EventSubscriberInterface
             return;
         }
 
-        if ($event instanceof OpenApiPaymentModuleOptionEvent) {
+        if ($event instanceof (self::OPEN_API_OPTION_EVENT_CLASS)) {
             $this->fillOpenApiEvent($event);
         }
     }
@@ -97,7 +101,7 @@ class PaymentOptionListener implements EventSubscriberInterface
         $event->appendPaymentModuleOptionGroups($optionGroup);
     }
 
-    private function fillOpenApiEvent(OpenApiPaymentModuleOptionEvent $event): void
+    private function fillOpenApiEvent(object $event): void
     {
         $modelFactory = $this->openApiModelFactory;
         if (null === $modelFactory) {
